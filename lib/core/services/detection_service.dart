@@ -8,74 +8,11 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 import '../detection/interpreter_factory.dart';
 import '../detection/letterbox.dart';
 import '../detection/nms.dart';
+import '../detection/tensor_io.dart';
 import '../detection/yolo_decoder.dart';
 import '../models/detected_object.dart';
 import '../models/installed_model.dart';
 import '../models/resolution_profile.dart';
-
-// ---------------------------------------------------------------------------
-// Isolate message types — must be top-level so compute() can send/receive them
-// ---------------------------------------------------------------------------
-
-class _PreprocessMessage {
-  const _PreprocessMessage({
-    required this.rgbBytes,
-    required this.width,
-    required this.height,
-    required this.isInt8,
-    required this.scale,
-    required this.zeroPoint,
-  });
-
-  final Uint8List rgbBytes;
-  final int width;
-  final int height;
-  final bool isInt8;
-  final double scale;
-  final int zeroPoint;
-}
-
-/// Builds the model input tensor in a background isolate.
-/// Returns `List<List<List<List<T>>>>` where T is int (int8) or double (float32).
-Object _buildInputFromBytes(_PreprocessMessage msg) {
-  final w = msg.width;
-  final h = msg.height;
-  final bytes = msg.rgbBytes;
-  final s = msg.scale;
-  final zp = msg.zeroPoint;
-
-  if (msg.isInt8) {
-    return List<List<List<List<int>>>>.generate(
-      1,
-      (_) => List<List<List<int>>>.generate(
-        h,
-        (y) => List<List<int>>.generate(w, (x) {
-          final idx = (y * w + x) * 3;
-          return <int>[
-            (bytes[idx] / 255.0 / s + zp).round(),
-            (bytes[idx + 1] / 255.0 / s + zp).round(),
-            (bytes[idx + 2] / 255.0 / s + zp).round(),
-          ];
-        }),
-      ),
-    );
-  }
-
-  return List<List<List<List<double>>>>.generate(
-    1,
-    (_) => List<List<List<double>>>.generate(
-      h,
-      (y) => List<List<double>>.generate(w, (x) {
-        final idx = (y * w + x) * 3;
-        return <double>[
-          bytes[idx] / 255.0,
-          bytes[idx + 1] / 255.0,
-          bytes[idx + 2] / 255.0,
-        ];
-      }),
-    ),
-  );
-}
 
 class DetectionService extends ChangeNotifier {
   DetectionService();
@@ -276,15 +213,14 @@ class DetectionService extends ChangeNotifier {
       }
     }
 
-    final outputTensor = interpreter.getOutputTensor(0);
     final inputParams = inputTensor.params;
     final isInt8 = inputTensor.type == TensorType.int8;
 
-    // Step 1: Build input buffer in background isolate (pixel loop is off main thread).
+    // Step 1: Build the flat input tensor in a background isolate.
     final rgbBytes = processed.getBytes(order: img.ChannelOrder.rgb);
-    final inputBuffer = await compute(
-      _buildInputFromBytes,
-      _PreprocessMessage(
+    final inputBytes = await compute(
+      buildInputBytes,
+      InputBuildRequest(
         rgbBytes: rgbBytes,
         width: modelInputSize,
         height: modelInputSize,
@@ -299,14 +235,24 @@ class DetectionService extends ChangeNotifier {
     if (_interpreter != interpreter) {
       return <DetectedObject>[];
     }
-    final output = _buildOutputBuffer(outputTensor);
     final sw = Stopwatch()..start();
-    interpreter.run(inputBuffer, output);
+    interpreter.runInference(<Object>[inputBytes]);
     sw.stop();
     _lastInferenceMs = sw.elapsedMilliseconds;
 
-    // Step 3: Parse quantized output (fast, stays on main thread).
-    final outputData = _parseOutput(outputTensor, output);
+    // Step 3: Read the output tensor (copied out of native memory, which the
+    // next run overwrites) and split/dequantize it per channel.
+    final outputTensor = interpreter.getOutputTensor(0);
+    final outputShape = outputTensor.shape;
+    final outputParams = outputTensor.params;
+    final outputData = parseOutputBytes(
+      Uint8List.fromList(outputTensor.data),
+      isInt8: outputTensor.type == TensorType.int8,
+      channels: outputShape[1],
+      count: outputShape[2],
+      scale: outputParams.scale,
+      zeroPoint: outputParams.zeroPoint,
+    );
 
     // Step 4: Decode detections in background isolate.
     final rawDetections = await compute(
@@ -442,46 +388,6 @@ class DetectionService extends ChangeNotifier {
     _activeDelegate = result.delegate;
     _delegateFailures = result.failures;
     return result.interpreter;
-  }
-
-  Object _buildOutputBuffer(Tensor outputTensor) {
-    final shape = outputTensor.shape;
-    final channels = shape[1];
-    final count = shape[2];
-
-    if (outputTensor.type == TensorType.int8) {
-      return List.generate(
-        1,
-        (_) => List.generate(channels, (_) => List.filled(count, 0)),
-      );
-    }
-
-    return List.generate(
-      1,
-      (_) => List.generate(channels, (_) => List.filled(count, 0.0)),
-    );
-  }
-
-  List<List<double>> _parseOutput(Tensor outputTensor, Object outputBuffer) {
-    final params = outputTensor.params;
-    final raw = outputBuffer as List;
-    final List<List<double>> decoded = <List<double>>[];
-    for (final channel in raw[0] as List) {
-      final values = <double>[];
-      for (final value in channel as List) {
-        if (outputTensor.type == TensorType.int8) {
-          values.add(_dequantize(value as int, params));
-        } else {
-          values.add((value as num).toDouble());
-        }
-      }
-      decoded.add(values);
-    }
-    return decoded;
-  }
-
-  double _dequantize(int value, QuantizationParams params) {
-    return (value - params.zeroPoint) * params.scale;
   }
 
   @override
