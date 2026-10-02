@@ -5,6 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
 
+import '../detection/letterbox.dart';
+import '../detection/nms.dart';
+import '../detection/yolo_decoder.dart';
 import '../models/app_settings.dart';
 import '../models/detected_object.dart';
 import '../models/resolution_profile.dart';
@@ -29,36 +32,6 @@ class _PreprocessMessage {
   final bool isInt8;
   final double scale;
   final int zeroPoint;
-}
-
-class _DecodeMessage {
-  const _DecodeMessage({
-    required this.outputData,
-    required this.inputSize,
-    required this.confidence,
-    required this.labels,
-    required this.selectedLabels,
-    required this.filterBySelected,
-    required this.padX,
-    required this.padY,
-    required this.scaledWidth,
-    required this.scaledHeight,
-  });
-
-  final List<List<double>> outputData;
-  final int inputSize;
-  final double confidence;
-  final List<String> labels;
-  final List<String> selectedLabels;
-  final bool filterBySelected;
-  /// Horizontal padding added during letterboxing (in model-input pixels).
-  final int padX;
-  /// Vertical padding added during letterboxing (in model-input pixels).
-  final int padY;
-  /// Width of the actual image area inside the letterboxed square.
-  final int scaledWidth;
-  /// Height of the actual image area inside the letterboxed square.
-  final int scaledHeight;
 }
 
 /// Builds the model input tensor in a background isolate.
@@ -103,64 +76,6 @@ Object _buildInputFromBytes(_PreprocessMessage msg) {
   );
 }
 
-/// Decodes raw output tensor and applies confidence filtering in a background
-/// isolate. Returns each detection as  [label, confidence, left, top, w, h].
-List<List<Object>> _decodeAndFilter(_DecodeMessage msg) {
-  final output = msg.outputData;
-  if (output.isEmpty) {
-    return const <List<Object>>[];
-  }
-
-  final channels = output.length;
-  final count = output[0].length;
-  final selectedSet = msg.selectedLabels.toSet();
-  final results = <List<Object>>[];
-
-  for (var i = 0; i < count; i++) {
-    final cx = output[0][i];
-    final cy = output[1][i];
-    final w = output[2][i];
-    final h = output[3][i];
-
-    var bestScore = 0.0;
-    var bestClass = -1;
-    for (var c = 4; c < channels; c++) {
-      final score = output[c][i];
-      if (score > bestScore) {
-        bestScore = score;
-        bestClass = c - 4;
-      }
-    }
-
-    if (bestScore < msg.confidence || bestClass < 0 || bestClass >= msg.labels.length) {
-      continue;
-    }
-
-    final label = msg.labels[bestClass];
-    if (msg.filterBySelected && !selectedSet.contains(label)) {
-      continue;
-    }
-
-    // Model outputs normalised [0,1] coordinates relative to the full
-    // (letterboxed) input square.  Convert padding / scale to the same
-    // normalised space before un-letterboxing.
-    final padXN = msg.padX / msg.inputSize;
-    final padYN = msg.padY / msg.inputSize;
-    final sW = msg.scaledWidth / msg.inputSize;
-    final sH = msg.scaledHeight / msg.inputSize;
-
-    final left = ((cx - w / 2 - padXN) / sW).clamp(0.0, 1.0);
-    final top = ((cy - h / 2 - padYN) / sH).clamp(0.0, 1.0);
-    final bw = (w / sW).clamp(0.0, 1.0 - left);
-    final bh = (h / sH).clamp(0.0, 1.0 - top);
-
-    results.add(<Object>[label, bestScore, left, top, bw, bh]);
-  }
-
-  results.sort((a, b) => (b[1] as double).compareTo(a[1] as double));
-  return results;
-}
-
 class DetectionService extends ChangeNotifier {
   DetectionService();
 
@@ -202,6 +117,7 @@ class DetectionService extends ChangeNotifier {
     await _loadFromSettings(settings, force: true);
   }
 
+  /// Runs detection on an image file.
   Future<List<DetectedObject>> detectObjects({
     required File imageFile,
     required ResolutionProfile profile,
@@ -241,51 +157,111 @@ class DetectionService extends ChangeNotifier {
       return <DetectedObject>[];
     }
 
+    return _detect(
+      interpreter: interpreter,
+      labels: labels,
+      image: decoded,
+      profile: profile,
+      confidence: confidence,
+      iouThreshold: iou,
+      useNms: useNms,
+      maxDetections: maxDetections,
+      selectedLabels: selectedLabels,
+      filterBySelectedLabels: filterBySelectedLabels,
+    );
+  }
+
+  /// Runs detection on an already-decoded [img.Image].
+  ///
+  /// This is intended for real-time camera pipelines where the caller converts
+  /// `CameraImage` → `img.Image` beforehand.  Skips file I/O for speed.
+  Future<List<DetectedObject>> detectFromImage({
+    required img.Image image,
+    required ResolutionProfile profile,
+    required double confidence,
+    required double iou,
+    required bool useNms,
+    required int maxDetections,
+    required Set<String> selectedLabels,
+    bool filterBySelectedLabels = true,
+  }) async {
+    final interpreter = _interpreter;
+    if (interpreter == null || _labels.isEmpty) {
+      return <DetectedObject>[];
+    }
+    return _detect(
+      interpreter: interpreter,
+      labels: List<String>.unmodifiable(_labels),
+      image: image,
+      profile: profile,
+      confidence: confidence,
+      iouThreshold: iou,
+      useNms: useNms,
+      maxDetections: maxDetections,
+      selectedLabels: selectedLabels,
+      filterBySelectedLabels: filterBySelectedLabels,
+    );
+  }
+
+  /// Shared detection pipeline for file and camera-frame input.
+  ///
+  /// [interpreter] and [labels] are snapshots taken by the caller so a
+  /// concurrent model reload cannot swap them mid-run.
+  Future<List<DetectedObject>> _detect({
+    required Interpreter interpreter,
+    required List<String> labels,
+    required img.Image image,
+    required ResolutionProfile profile,
+    required double confidence,
+    required double iouThreshold,
+    required bool useNms,
+    required int maxDetections,
+    required Set<String> selectedLabels,
+    required bool filterBySelectedLabels,
+  }) async {
     final inputTensor = interpreter.getInputTensor(0);
     final modelInputSize = inputTensor.shape[1];
 
-    // --- Letterbox preprocessing (preserves aspect ratio) ---
     // Pre-downscale very large images using profile resolution as a cap.
-    var source = decoded;
-    final maxDim = source.width > source.height ? source.width : source.height;
-    if (maxDim > profile.size) {
-      final preScale = profile.size / maxDim;
+    var source = image;
+    final capped = capLongestSide(image.width, image.height, profile.size);
+    if (capped.width != image.width || capped.height != image.height) {
       source = img.copyResize(
-        decoded,
-        width: (decoded.width * preScale).round(),
-        height: (decoded.height * preScale).round(),
+        image,
+        width: capped.width,
+        height: capped.height,
         interpolation: img.Interpolation.linear,
       );
     }
 
-    // Compute letterbox parameters.
-    final srcW = source.width;
-    final srcH = source.height;
-    final scaleW = modelInputSize / srcW;
-    final scaleH = modelInputSize / srcH;
-    final scale = scaleW < scaleH ? scaleW : scaleH;
-    final newW = (srcW * scale).round();
-    final newH = (srcH * scale).round();
-    final padX = (modelInputSize - newW) ~/ 2;
-    final padY = (modelInputSize - newH) ~/ 2;
+    // Letterbox preprocessing (preserves aspect ratio).
+    final letterbox = LetterboxParams.compute(
+      sourceWidth: source.width,
+      sourceHeight: source.height,
+      inputSize: modelInputSize,
+    );
 
     final resized = img.copyResize(
       source,
-      width: newW,
-      height: newH,
+      width: letterbox.scaledWidth,
+      height: letterbox.scaledHeight,
       interpolation: img.Interpolation.linear,
     );
 
-    // Build padded square canvas (YOLO letterbox standard: gray 114).
+    // Padded square canvas (YOLO letterbox standard: gray 114).
     final processed = img.Image(width: modelInputSize, height: modelInputSize);
     for (var py = 0; py < modelInputSize; py++) {
       for (var px = 0; px < modelInputSize; px++) {
         processed.setPixelRgba(px, py, 114, 114, 114, 255);
       }
     }
-    for (var py = 0; py < newH; py++) {
-      for (var px = 0; px < newW; px++) {
-        processed.setPixel(padX + px, padY + py, resized.getPixel(px, py));
+    for (var py = 0; py < letterbox.scaledHeight; py++) {
+      for (var px = 0; px < letterbox.scaledWidth; px++) {
+        processed.setPixel(
+          letterbox.padX + px,
+          letterbox.padY + py,
+          resized.getPixel(px, py),
+        );
       }
     }
 
@@ -323,33 +299,24 @@ class DetectionService extends ChangeNotifier {
 
     // Step 4: Decode detections in background isolate.
     final rawDetections = await compute(
-      _decodeAndFilter,
-      _DecodeMessage(
-        outputData: outputData,
-        inputSize: modelInputSize,
+      decodeYolo,
+      DecodeRequest(
+        output: outputData,
+        letterbox: letterbox,
         confidence: confidence,
         labels: labels,
         selectedLabels: selectedLabels.toList(),
         filterBySelected: filterBySelectedLabels,
-        padX: padX,
-        padY: padY,
-        scaledWidth: newW,
-        scaledHeight: newH,
       ),
     );
 
-    // Reconstruct DetectedObject (needs dart:ui Rect — must be on main thread).
+    // DetectedObject needs dart:ui Rect — rebuild on the main isolate.
     final detections = rawDetections
         .map(
           (raw) => DetectedObject(
-            label: raw[0] as String,
-            confidence: raw[1] as double,
-            boundingBox: Rect.fromLTWH(
-              raw[2] as double,
-              raw[3] as double,
-              raw[4] as double,
-              raw[5] as double,
-            ),
+            label: raw.label,
+            confidence: raw.score,
+            boundingBox: Rect.fromLTWH(raw.left, raw.top, raw.width, raw.height),
           ),
         )
         .toList();
@@ -358,139 +325,7 @@ class DetectionService extends ChangeNotifier {
       return detections.take(maxDetections).toList();
     }
 
-    return _nonMaxSuppression(detections, iou, maxDetections);
-  }
-
-  /// Runs detection on an already-decoded [img.Image].
-  ///
-  /// This is intended for real-time camera pipelines where the caller converts
-  /// `CameraImage` → `img.Image` beforehand.  Skips file I/O for speed.
-  Future<List<DetectedObject>> detectFromImage({
-    required img.Image image,
-    required ResolutionProfile profile,
-    required double confidence,
-    required double iou,
-    required bool useNms,
-    required int maxDetections,
-    required Set<String> selectedLabels,
-    bool filterBySelectedLabels = true,
-  }) async {
-    final interpreter = _interpreter;
-    if (interpreter == null || _labels.isEmpty) {
-      return <DetectedObject>[];
-    }
-    final labels = List<String>.unmodifiable(_labels);
-
-    final inputTensor = interpreter.getInputTensor(0);
-    final modelInputSize = inputTensor.shape[1];
-
-    // Pre-downscale if needed using profile resolution as a cap.
-    var source = image;
-    final maxDim = source.width > source.height ? source.width : source.height;
-    if (maxDim > profile.size) {
-      final preScale = profile.size / maxDim;
-      source = img.copyResize(
-        image,
-        width: (image.width * preScale).round(),
-        height: (image.height * preScale).round(),
-        interpolation: img.Interpolation.linear,
-      );
-    }
-
-    // Letterbox preprocessing.
-    final srcW = source.width;
-    final srcH = source.height;
-    final scaleW = modelInputSize / srcW;
-    final scaleH = modelInputSize / srcH;
-    final scale = scaleW < scaleH ? scaleW : scaleH;
-    final newW = (srcW * scale).round();
-    final newH = (srcH * scale).round();
-    final padX = (modelInputSize - newW) ~/ 2;
-    final padY = (modelInputSize - newH) ~/ 2;
-
-    final resized = img.copyResize(
-      source,
-      width: newW,
-      height: newH,
-      interpolation: img.Interpolation.linear,
-    );
-
-    final processed = img.Image(width: modelInputSize, height: modelInputSize);
-    for (var py = 0; py < modelInputSize; py++) {
-      for (var px = 0; px < modelInputSize; px++) {
-        processed.setPixelRgba(px, py, 114, 114, 114, 255);
-      }
-    }
-    for (var py = 0; py < newH; py++) {
-      for (var px = 0; px < newW; px++) {
-        processed.setPixel(padX + px, padY + py, resized.getPixel(px, py));
-      }
-    }
-
-    final outputTensor = interpreter.getOutputTensor(0);
-    final inputParams = inputTensor.params;
-    final isInt8 = inputTensor.type == TensorType.int8;
-
-    final rgbBytes = processed.getBytes(order: img.ChannelOrder.rgb);
-    final inputBuffer = await compute(
-      _buildInputFromBytes,
-      _PreprocessMessage(
-        rgbBytes: rgbBytes,
-        width: modelInputSize,
-        height: modelInputSize,
-        isInt8: isInt8,
-        scale: inputParams.scale,
-        zeroPoint: inputParams.zeroPoint,
-      ),
-    );
-
-    if (_interpreter != interpreter) {
-      return <DetectedObject>[];
-    }
-    final output = _buildOutputBuffer(outputTensor);
-    final sw = Stopwatch()..start();
-    interpreter.run(inputBuffer, output);
-    sw.stop();
-    _lastInferenceMs = sw.elapsedMilliseconds;
-
-    final outputData = _parseOutput(outputTensor, output);
-
-    final rawDetections = await compute(
-      _decodeAndFilter,
-      _DecodeMessage(
-        outputData: outputData,
-        inputSize: modelInputSize,
-        confidence: confidence,
-        labels: labels,
-        selectedLabels: selectedLabels.toList(),
-        filterBySelected: filterBySelectedLabels,
-        padX: padX,
-        padY: padY,
-        scaledWidth: newW,
-        scaledHeight: newH,
-      ),
-    );
-
-    final detections = rawDetections
-        .map(
-          (raw) => DetectedObject(
-            label: raw[0] as String,
-            confidence: raw[1] as double,
-            boundingBox: Rect.fromLTWH(
-              raw[2] as double,
-              raw[3] as double,
-              raw[4] as double,
-              raw[5] as double,
-            ),
-          ),
-        )
-        .toList();
-
-    if (!useNms) {
-      return detections.take(maxDetections).toList();
-    }
-
-    return _nonMaxSuppression(detections, iou, maxDetections);
+    return nonMaxSuppression(detections, iouThreshold, maxDetections);
   }
 
   Future<void> _loadFromSettings(AppSettings settings, {required bool force}) async {
@@ -689,38 +524,6 @@ class DetectionService extends ChangeNotifier {
       decoded.add(values);
     }
     return decoded;
-  }
-
-  List<DetectedObject> _nonMaxSuppression(
-    List<DetectedObject> detections,
-    double iouThreshold,
-    int maxDetections,
-  ) {
-    final results = <DetectedObject>[];
-    final sorted = List<DetectedObject>.from(detections)
-      ..sort((a, b) => b.confidence.compareTo(a.confidence));
-
-    while (sorted.isNotEmpty && results.length < maxDetections) {
-      final current = sorted.removeAt(0);
-      results.add(current);
-      sorted.removeWhere(
-        (candidate) => _iou(current.boundingBox, candidate.boundingBox) > iouThreshold,
-      );
-    }
-    return results;
-  }
-
-  double _iou(Rect a, Rect b) {
-    final intersection = a.intersect(b);
-    if (intersection.isEmpty) {
-      return 0.0;
-    }
-    final intersectionArea = intersection.width * intersection.height;
-    final unionArea = (a.width * a.height) + (b.width * b.height) - intersectionArea;
-    if (unionArea <= 0) {
-      return 0.0;
-    }
-    return intersectionArea / unionArea;
   }
 
   double _dequantize(int value, QuantizationParams params) {
