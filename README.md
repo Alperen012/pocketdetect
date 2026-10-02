@@ -54,5 +54,10 @@ ve özet liste olarak gösterir.
 
 ## Lisans
 
-Proje içindeki model/etiket/dataset dosyaları kendi lisans koşullarına tabi olabilir.
-Kullanmadan önce ilgili dosyalardaki lisans notlarını kontrol edin.
+Bu proje [GNU AGPL-3.0](LICENSE) ile lisanslanmıştır. Gömülü varsayılan model
+(`assets/models/yolo26n_int8.tflite`) Ultralytics YOLO26'dan türetilmiştir ve
+Ultralytics'in AGPL-3.0 lisansına tabidir; uygulamanın kaynağını açık tutmak bu
+koşulun bir parçasıdır.
+
+`assets/labels/coco.txt` ve diğer veri dosyaları kendi lisans koşullarına tabi
+olabilir. Kullanmadan önce ilgili dosyalardaki lisans notlarını kontrol edin.
