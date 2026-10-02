@@ -518,7 +518,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get wizardSelectModelFile => 'Model Dosyası Seç';
 
   @override
-  String get wizardSelectModelDesc => 'Cihazınızdan bir .tflite dosyası seçin.';
+  String get wizardSelectModelDesc =>
+      'Cihazınızdan bir .tflite dosyası ya da model ve labels.txt içeren bir .zip seçin.';
 
   @override
   String get wizardValidating => 'Model doğrulanıyor…';
@@ -1036,4 +1037,10 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get modelSourceMarketplace => 'Pazaryeri';
+
+  @override
+  String get wizardErrorNotZip => 'Bu dosya geçerli bir .zip paketi değil.';
+
+  @override
+  String get wizardErrorZipNoModel => 'Bu .zip içinde .tflite modeli yok.';
 }

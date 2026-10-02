@@ -165,7 +165,7 @@
   "wizardContinue": "Devam Et",
   "wizardBack": "Geri",
   "wizardSelectModelFile": "Model Dosyası Seç",
-  "wizardSelectModelDesc": "Cihazınızdan bir .tflite dosyası seçin.",
+  "wizardSelectModelDesc": "Cihazınızdan bir .tflite dosyası ya da model ve labels.txt içeren bir .zip seçin.",
   "wizardValidating": "Model doğrulanıyor…",
   "wizardModelValid": "Model başarıyla doğrulandı",
   "wizardModelInputSize": "Giriş boyutu: {width}×{height}",
@@ -320,5 +320,7 @@
   "modelLoadFailed": "Aktif model yüklenemedi.",
   "modelSourceFile": "İçe aktarılan dosya",
   "modelSourceUrl": "Bağlantıdan indirildi",
-  "modelSourceMarketplace": "Pazaryeri"
+  "modelSourceMarketplace": "Pazaryeri",
+  "wizardErrorNotZip": "Bu dosya geçerli bir .zip paketi değil.",
+  "wizardErrorZipNoModel": "Bu .zip içinde .tflite modeli yok."
 }

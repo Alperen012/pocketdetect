@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import '../../../core/l10n/l10n_extensions.dart';
 import '../../../core/services/model_library_service.dart';
+import '../../../core/services/model_package.dart';
 import '../../../core/services/model_validator.dart';
 import '../../../core/theme/app_colors.dart';
 
@@ -54,7 +56,21 @@ class _ModelImportWizardState extends State<ModelImportWizard> {
   String? _labelsError;
   bool _useCocoLabels = false;
 
+  /// Name the model gets in the library: the file (or zip) name.
+  String? _importName;
+
+  /// Folders created while unpacking zips; removed when the wizard closes.
+  final List<Directory> _tempDirs = <Directory>[];
+
   static const _totalSteps = 4;
+
+  @override
+  void dispose() {
+    for (final dir in _tempDirs) {
+      dir.delete(recursive: true).catchError((_) => dir);
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -297,7 +313,13 @@ class _ModelImportWizardState extends State<ModelImportWizard> {
     final path = result?.files.firstOrNull?.path;
     if (path == null || path.isEmpty) return;
 
-    if (!path.toLowerCase().endsWith('.tflite')) {
+    final lower = path.toLowerCase();
+    if (lower.endsWith('.zip')) {
+      await _importZip(path);
+      return;
+    }
+
+    if (!lower.endsWith('.tflite')) {
       if (!mounted) return;
       setState(() {
         _modelError = context.l10n.wizardErrorNotValidTflite;
@@ -307,6 +329,11 @@ class _ModelImportWizardState extends State<ModelImportWizard> {
       return;
     }
 
+    _importName = p.basenameWithoutExtension(path);
+    await _validateModelAt(path);
+  }
+
+  Future<void> _validateModelAt(String path) async {
     setState(() {
       _isValidating = true;
       _modelError = null;
@@ -324,6 +351,57 @@ class _ModelImportWizardState extends State<ModelImportWizard> {
         _pickedModelPath = null;
         _modelError = _localizeError(validation.errorCode!);
       }
+    });
+  }
+
+  /// A `.zip` holds the model and, optionally, its label list.
+  Future<void> _importZip(String zipPath) async {
+    final l10n = context.l10n;
+    setState(() {
+      _isValidating = true;
+      _modelError = null;
+      _modelResult = null;
+    });
+
+    final temp = await getTemporaryDirectory();
+    final outDir = Directory(
+      p.join(temp.path, 'model_import_${DateTime.now().microsecondsSinceEpoch}'),
+    );
+    _tempDirs.add(outDir);
+
+    final ModelPackage package;
+    try {
+      package = await extractModelPackage(zipPath, outDir);
+    } on ModelPackageException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isValidating = false;
+        _modelError = e.error == ModelPackageError.noModelFile
+            ? l10n.wizardErrorZipNoModel
+            : l10n.wizardErrorNotZip;
+      });
+      return;
+    }
+
+    _importName = p.basenameWithoutExtension(zipPath);
+    await _validateModelAt(package.modelPath);
+
+    // Pre-fill the label step when the package brought a matching list.
+    final labelsPath = package.labelsPath;
+    final model = _modelResult;
+    if (!mounted || labelsPath == null || model == null || !model.isValid) {
+      return;
+    }
+    final labels = await ModelValidator.validateLabels(
+      labelsPath,
+      expectedCount: model.classCount!,
+    );
+    if (!mounted || !labels.isValid) return;
+    setState(() {
+      _pickedLabelsPath = labelsPath;
+      _labelsResult = labels;
+      _labelsError = null;
+      _useCocoLabels = false;
     });
   }
 
@@ -473,7 +551,7 @@ class _ModelImportWizardState extends State<ModelImportWizard> {
   Widget _buildSummaryStep(BuildContext context) {
     final l10n = context.l10n;
     final result = _modelResult!;
-    final fileName = p.basename(_pickedModelPath!);
+    final fileName = _importName ?? p.basename(_pickedModelPath!);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -609,7 +687,7 @@ class _ModelImportWizardState extends State<ModelImportWizard> {
     try {
       final model = await library.installFile(
         sourcePath: _pickedModelPath!,
-        name: p.basenameWithoutExtension(_pickedModelPath!),
+        name: _importName ?? p.basenameWithoutExtension(_pickedModelPath!),
         validation: _modelResult!,
         labels: labels,
         usesCocoLabels: _useCocoLabels,

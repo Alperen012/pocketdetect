@@ -181,7 +181,7 @@
   "wizardContinue": "Continue",
   "wizardBack": "Back",
   "wizardSelectModelFile": "Select Model File",
-  "wizardSelectModelDesc": "Choose a .tflite file from your device.",
+  "wizardSelectModelDesc": "Choose a .tflite file, or a .zip with the model and a labels.txt, from your device.",
   "wizardValidating": "Validating model…",
   "wizardModelValid": "Model validated successfully",
   "wizardModelInputSize": "Input size: {width}×{height}",
@@ -354,5 +354,7 @@
   "modelLoadFailed": "The active model could not be loaded.",
   "modelSourceFile": "Imported file",
   "modelSourceUrl": "Downloaded from a link",
-  "modelSourceMarketplace": "Marketplace"
+  "modelSourceMarketplace": "Marketplace",
+  "wizardErrorNotZip": "That file is not a valid .zip package.",
+  "wizardErrorZipNoModel": "The .zip does not contain a .tflite model."
 }

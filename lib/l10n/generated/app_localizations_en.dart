@@ -519,7 +519,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wizardSelectModelFile => 'Select Model File';
 
   @override
-  String get wizardSelectModelDesc => 'Choose a .tflite file from your device.';
+  String get wizardSelectModelDesc =>
+      'Choose a .tflite file, or a .zip with the model and a labels.txt, from your device.';
 
   @override
   String get wizardValidating => 'Validating model…';
@@ -1033,4 +1034,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get modelSourceMarketplace => 'Marketplace';
+
+  @override
+  String get wizardErrorNotZip => 'That file is not a valid .zip package.';
+
+  @override
+  String get wizardErrorZipNoModel =>
+      'The .zip does not contain a .tflite model.';
 }

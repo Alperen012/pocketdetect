@@ -1025,7 +1025,7 @@ abstract class AppLocalizations {
   /// No description provided for @wizardSelectModelDesc.
   ///
   /// In en, this message translates to:
-  /// **'Choose a .tflite file from your device.'**
+  /// **'Choose a .tflite file, or a .zip with the model and a labels.txt, from your device.'**
   String get wizardSelectModelDesc;
 
   /// No description provided for @wizardValidating.
@@ -1939,6 +1939,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Marketplace'**
   String get modelSourceMarketplace;
+
+  /// No description provided for @wizardErrorNotZip.
+  ///
+  /// In en, this message translates to:
+  /// **'That file is not a valid .zip package.'**
+  String get wizardErrorNotZip;
+
+  /// No description provided for @wizardErrorZipNoModel.
+  ///
+  /// In en, this message translates to:
+  /// **'The .zip does not contain a .tflite model.'**
+  String get wizardErrorZipNoModel;
 }
 
 class _AppLocalizationsDelegate
