@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
 
+import '../detection/image_decode.dart';
 import '../detection/interpreter_factory.dart';
 import '../detection/letterbox.dart';
 import '../detection/nms.dart';
@@ -100,7 +101,7 @@ class DetectionService extends ChangeNotifier {
     }
 
     await Future<void>.delayed(Duration.zero);
-    final decoded = img.decodeImage(bytes);
+    final decoded = decodeUpright(bytes);
     if (decoded == null) {
       return <DetectedObject>[];
     }
