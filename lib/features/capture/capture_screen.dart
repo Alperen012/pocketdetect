@@ -2,12 +2,13 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/detection/camera_frame.dart';
 import '../../core/l10n/l10n_extensions.dart';
 import '../../core/models/detected_object.dart';
 import '../../core/services/detection_service.dart';
@@ -218,13 +219,15 @@ class _CaptureScreenState extends State<CaptureScreen> {
 
   Future<void> _processFrame(CameraImage cameraImage) async {
     try {
-      // Convert CameraImage to img.Image
-      final image = _convertCameraImage(cameraImage);
-      if (image == null) return;
+      final frame = _frameDataFrom(cameraImage);
+      if (frame == null) return;
 
       final sc = context.read<SettingsController>();
       final ds = context.read<DetectionService>();
       final settings = sc.settings;
+
+      // Convert + rotate upright off the UI thread.
+      final image = await compute(convertCameraFrame, frame);
 
       final detections = await ds.detectFromImage(
         image: image,
@@ -257,69 +260,87 @@ class _CaptureScreenState extends State<CaptureScreen> {
     }
   }
 
-  /// Convert a [CameraImage] to an [img.Image].
-  ///
-  /// Supports YUV420 (Android) and BGRA8888 (iOS).
-  img.Image? _convertCameraImage(CameraImage cameraImage) {
-    try {
-      if (cameraImage.format.group == ImageFormatGroup.yuv420) {
-        return _convertYuv420(cameraImage);
-      } else if (cameraImage.format.group == ImageFormatGroup.bgra8888) {
-        return _convertBgra8888(cameraImage);
-      }
-    } catch (e) {
-      debugPrint('Image conversion error: $e');
+  /// Packs a [CameraImage] for [convertCameraFrame], including the rotation
+  /// that makes it upright for the current sensor and device orientation.
+  CameraFrameData? _frameDataFrom(CameraImage image) {
+    final controller = _cameraController;
+    if (controller == null) return null;
+
+    final rotation = frameRotationDegrees(
+      sensorOrientation: controller.description.sensorOrientation,
+      deviceOrientationDegrees: _deviceOrientationDegrees(controller),
+      isFrontCamera:
+          controller.description.lensDirection == CameraLensDirection.front,
+    );
+
+    switch (image.format.group) {
+      case ImageFormatGroup.yuv420:
+        if (image.planes.length < 3) return null;
+        return CameraFrameData(
+          format: CameraFrameFormat.yuv420,
+          width: image.width,
+          height: image.height,
+          plane0: image.planes[0].bytes,
+          rowStride0: image.planes[0].bytesPerRow,
+          plane1: image.planes[1].bytes,
+          plane2: image.planes[2].bytes,
+          uvRowStride: image.planes[1].bytesPerRow,
+          uvPixelStride: image.planes[1].bytesPerPixel ?? 1,
+          rotationDegrees: rotation,
+        );
+      case ImageFormatGroup.bgra8888:
+        return CameraFrameData(
+          format: CameraFrameFormat.bgra8888,
+          width: image.width,
+          height: image.height,
+          plane0: image.planes[0].bytes,
+          rowStride0: image.planes[0].bytesPerRow,
+          rotationDegrees: rotation,
+        );
+      default:
+        return null;
     }
-    return null;
   }
 
-  img.Image _convertYuv420(CameraImage image) {
-    final width = image.width;
-    final height = image.height;
-    final yPlane = image.planes[0];
-    final uPlane = image.planes[1];
-    final vPlane = image.planes[2];
-
-    final result = img.Image(width: width, height: height);
-
-    for (var y = 0; y < height; y++) {
-      for (var x = 0; x < width; x++) {
-        final yIndex = y * yPlane.bytesPerRow + x;
-        final uvIndex = (y ~/ 2) * uPlane.bytesPerRow + (x ~/ 2);
-
-        final yVal = yPlane.bytes[yIndex];
-        final uVal = uPlane.bytes[uvIndex];
-        final vVal = vPlane.bytes[uvIndex];
-
-        final r = (yVal + 1.370705 * (vVal - 128)).clamp(0, 255).toInt();
-        final g = (yVal - 0.337633 * (uVal - 128) - 0.698001 * (vVal - 128))
-            .clamp(0, 255)
-            .toInt();
-        final b = (yVal + 1.732446 * (uVal - 128)).clamp(0, 255).toInt();
-
-        result.setPixelRgba(x, y, r, g, b, 255);
-      }
-    }
-
-    return result;
+  int _deviceOrientationDegrees(CameraController controller) {
+    return switch (controller.value.deviceOrientation) {
+      DeviceOrientation.portraitUp => 0,
+      DeviceOrientation.landscapeLeft => 90,
+      DeviceOrientation.portraitDown => 180,
+      DeviceOrientation.landscapeRight => 270,
+    };
   }
 
-  img.Image _convertBgra8888(CameraImage image) {
-    final width = image.width;
-    final height = image.height;
-    final bytes = image.planes[0].bytes;
-    final bytesPerRow = image.planes[0].bytesPerRow;
-
-    final result = img.Image(width: width, height: height);
-
-    for (var y = 0; y < height; y++) {
-      for (var x = 0; x < width; x++) {
-        final i = y * bytesPerRow + x * 4;
-        result.setPixelRgba(x, y, bytes[i + 2], bytes[i + 1], bytes[i], 255);
-      }
+  /// Camera preview scaled to cover the available area without distortion,
+  /// with the detection overlay drawn in the same coordinate space so boxes
+  /// line up with what is visible.
+  Widget _buildPreview(CameraController controller) {
+    final previewSize = controller.value.previewSize;
+    final overlay = _isLiveMode && _liveDetections.isNotEmpty
+        ? BoundingBoxOverlay(detections: _liveDetections)
+        : null;
+    if (previewSize == null) {
+      return CameraPreview(controller, child: overlay);
     }
 
-    return result;
+    // previewSize is reported in sensor (landscape) terms; flip it when the
+    // device is held upright so the box matches what CameraPreview renders.
+    final portrait = switch (controller.value.deviceOrientation) {
+      DeviceOrientation.portraitUp || DeviceOrientation.portraitDown => true,
+      _ => false,
+    };
+    final width = portrait ? previewSize.height : previewSize.width;
+    final height = portrait ? previewSize.width : previewSize.height;
+
+    return FittedBox(
+      fit: BoxFit.cover,
+      clipBehavior: Clip.hardEdge,
+      child: SizedBox(
+        width: width,
+        height: height,
+        child: CameraPreview(controller, child: overlay),
+      ),
+    );
   }
 
   @override
@@ -388,7 +409,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                             ),
                                           );
                                         }
-                                        return CameraPreview(
+                                        return _buildPreview(
                                             _cameraController!);
                                       }
                                       return const Center(
@@ -398,26 +419,6 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                   ),
                           ),
                         ),
-
-                        // Live detection bounding box overlay
-                        if (_isLiveMode && _liveDetections.isNotEmpty)
-                          Positioned.fill(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(24),
-                              child: BoundingBoxOverlay(
-                                detections: _liveDetections,
-                                imageWidth:
-                                    _cameraController?.value.previewSize
-                                            ?.height
-                                            .toInt() ??
-                                        1,
-                                imageHeight:
-                                    _cameraController?.value.previewSize?.width
-                                            .toInt() ??
-                                        1,
-                              ),
-                            ),
-                          ),
 
                         // Back button
                         Positioned(

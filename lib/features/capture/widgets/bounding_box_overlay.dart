@@ -3,20 +3,26 @@ import 'package:flutter/material.dart';
 import '../../../core/models/detected_object.dart';
 import '../../../core/theme/app_colors.dart';
 
+/// Maps a box in normalised (0-1) image coordinates to a rect in a
+/// [size]-sized canvas that shows the whole image.
+Rect scaleNormalizedBox(Rect box, Size size) {
+  return Rect.fromLTWH(
+    box.left * size.width,
+    box.top * size.height,
+    box.width * size.width,
+    box.height * size.height,
+  );
+}
+
 /// Paints bounding boxes and labels on top of the camera preview.
 ///
-/// [detections] are in normalised coordinates (0-1) relative to the
-/// original image.  The painter maps them to the widget's actual size.
+/// [detections] are in normalised coordinates (0-1) relative to the upright
+/// camera frame. The canvas must show that whole frame, which is why the
+/// overlay is drawn inside the preview's own box.
 class BoundingBoxPainter extends CustomPainter {
-  BoundingBoxPainter({
-    required this.detections,
-    required this.imageWidth,
-    required this.imageHeight,
-  });
+  BoundingBoxPainter({required this.detections});
 
   final List<DetectedObject> detections;
-  final int imageWidth;
-  final int imageHeight;
 
   static const _colors = <Color>[
     Color(0xFF00BCD4),
@@ -33,19 +39,10 @@ class BoundingBoxPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (detections.isEmpty) return;
 
-    final scaleX = size.width / imageWidth;
-    final scaleY = size.height / imageHeight;
-
     for (var i = 0; i < detections.length; i++) {
       final det = detections[i];
       final color = _colors[i % _colors.length];
-
-      final rect = Rect.fromLTWH(
-        det.boundingBox.left * scaleX,
-        det.boundingBox.top * scaleY,
-        det.boundingBox.width * scaleX,
-        det.boundingBox.height * scaleY,
-      );
+      final rect = scaleNormalizedBox(det.boundingBox, size);
 
       // Box
       final boxPaint = Paint()
@@ -97,27 +94,16 @@ class BoundingBoxPainter extends CustomPainter {
 
 /// A widget that overlays bounding boxes on the camera preview.
 class BoundingBoxOverlay extends StatelessWidget {
-  const BoundingBoxOverlay({
-    super.key,
-    required this.detections,
-    required this.imageWidth,
-    required this.imageHeight,
-  });
+  const BoundingBoxOverlay({super.key, required this.detections});
 
   final List<DetectedObject> detections;
-  final int imageWidth;
-  final int imageHeight;
 
   @override
   Widget build(BuildContext context) {
     if (detections.isEmpty) return const SizedBox.shrink();
 
     return CustomPaint(
-      painter: BoundingBoxPainter(
-        detections: detections,
-        imageWidth: imageWidth,
-        imageHeight: imageHeight,
-      ),
+      painter: BoundingBoxPainter(detections: detections),
       child: const SizedBox.expand(),
     );
   }
