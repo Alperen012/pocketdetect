@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Capture &amp; Detect - Camera</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts & Icons -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Theme Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display overflow-hidden select-none">
+<div class="relative flex h-screen w-full flex-col bg-black group/design-root overflow-hidden">
+<!-- Viewfinder Background Layer -->
+<div class="absolute inset-0 z-0 bg-gray-900">
+<!-- Simulated Camera Feed -->
+<div class="relative w-full h-full">
+<div class="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60 z-10 pointer-events-none"></div>
+<div class="w-full h-full bg-center bg-cover bg-no-repeat" data-alt="Camera viewfinder showing a city street scene with cars" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCalGqDEqhnnh6iEgeXNQYtCoxLR9T1r73KUMxOTgGW8rjWwn0lgAROlq52nyWNYUJ4DsIkJobcDsBbTvMajIEbxjLunFBcti7Ea3Hdq5UYbV5xrU2SNn-Ci6ixKi1NuyFEW6LrCDtMppoiuJwT3w_HqymieYRyScJHRd3SQRR_umLHPlAClj34Md2mGENEqKWjq5Wg7ED1OifEg8Qm7GBNqNrsSqt8r4yWFHYHuDBhHNUuE2RCRGtpc2lw9sWBnJNuburO558RyOFZ');">
+</div>
+</div>
+<!-- AI Detection Overlay Graphics -->
+<div class="absolute inset-0 z-0 pointer-events-none flex items-center justify-center">
+<!-- Bounding Box Example -->
+<div class="relative w-64 h-48 border-2 border-primary/80 rounded-lg shadow-[0_0_20px_rgba(19,91,236,0.3)] backdrop-brightness-110">
+<!-- Corner Markers -->
+<div class="absolute -top-1 -left-1 w-4 h-4 border-t-4 border-l-4 border-primary rounded-tl-sm"></div>
+<div class="absolute -top-1 -right-1 w-4 h-4 border-t-4 border-r-4 border-primary rounded-tr-sm"></div>
+<div class="absolute -bottom-1 -left-1 w-4 h-4 border-b-4 border-l-4 border-primary rounded-bl-sm"></div>
+<div class="absolute -bottom-1 -right-1 w-4 h-4 border-b-4 border-r-4 border-primary rounded-br-sm"></div>
+<!-- Label -->
+<div class="absolute -top-8 left-0 flex gap-2">
+<div class="flex items-center gap-1 bg-primary px-2 py-1 rounded text-xs font-bold text-white uppercase tracking-wider shadow-lg">
+<span class="material-symbols-outlined text-[14px]">directions_car</span>
+                            Car 98%
+                        </div>
+</div>
+</div>
+</div>
+</div>
+<!-- Top Header Area (Overlay) -->
+<div class="relative z-20 flex flex-col pt-12 px-4 pb-2 w-full">
+<div class="flex items-center justify-between w-full">
+<!-- Back Button -->
+<button class="flex items-center justify-center w-10 h-10 rounded-full bg-black/20 backdrop-blur-md text-white hover:bg-black/40 transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<!-- Active Detection Pill -->
+<div class="flex items-center gap-2 px-4 py-2 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 shadow-lg mx-2">
+<div class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+</div>
+<span class="text-white text-xs font-semibold tracking-wide uppercase">Detecting: Car, Dog</span>
+</div>
+<!-- Settings Button -->
+<button class="flex items-center justify-center w-10 h-10 rounded-full bg-black/20 backdrop-blur-md text-white hover:bg-black/40 transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<!-- Optional Context Hint -->
+<div class="w-full flex justify-center mt-4 opacity-0 animate-[fadeIn_2s_ease-in_forwards]">
+<p class="text-white/70 text-xs font-medium bg-black/20 backdrop-blur-sm px-3 py-1 rounded-full">Hold steady for capture</p>
+</div>
+</div>
+<!-- Spacer to push controls to bottom -->
+<div class="flex-1"></div>
+<!-- Camera Controls Deck -->
+<div class="relative z-20 flex flex-col items-center w-full bg-gradient-to-t from-background-dark via-background-dark to-transparent pt-8 pb-4">
+<!-- Main Actions Row -->
+<div class="flex items-center justify-around w-full max-w-md px-8 mb-6">
+<!-- Gallery / Upload Button -->
+<button class="flex flex-col items-center gap-1 group">
+<div class="flex items-center justify-center w-12 h-12 rounded-full bg-gray-800/80 border border-white/10 backdrop-blur-md text-white hover:bg-gray-700 transition-all shadow-lg overflow-hidden">
+<!-- Simulated Gallery Thumbnail -->
+<div class="w-full h-full opacity-60 bg-cover bg-center" data-alt="Small thumbnail of the last taken photo" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD9ttYw6Zt6GNoPvEK4Zoa_0bByYkNS5xv9EufAX-EHHWeW6y0dGgUpuOspwUd3cA4FmX0mllSZqzhApRIDTsbqKq92-ipp0vvoC47P6VzXh6PRpvjWwb2Uqy_1xSgRBis_0h_AkClHqdozvOvbYyaSpXqpUeqc-l39jCmdYwH2KKrvX7xGenbIhE_-V-noxDzUlbvNZJcL_KWvKXgVOM6JKSpMQzpjRF9iH3yMrJPg8osAlMdJm4TpKrToKYU3q0mLYaACzqV9dFo-')"></div>
+</div>
+</button>
+<!-- Shutter Button -->
+<button aria-label="Take Photo" class="relative group cursor-pointer">
+<div class="w-20 h-20 rounded-full border-[5px] border-white flex items-center justify-center shadow-[0_0_20px_rgba(0,0,0,0.3)] transition-transform duration-100 group-active:scale-95">
+<div class="w-16 h-16 rounded-full bg-primary shadow-inner group-active:opacity-90 transition-opacity"></div>
+</div>
+</button>
+<!-- Flip Camera Button -->
+<button class="flex flex-col items-center gap-1 group">
+<div class="flex items-center justify-center w-12 h-12 rounded-full bg-gray-800/80 border border-white/10 backdrop-blur-md text-white hover:bg-gray-700 transition-all shadow-lg">
+<span class="material-symbols-outlined text-[24px]">flip_camera_ios</span>
+</div>
+</button>
+</div>
+<!-- Mode Selector (Optional simplified version) -->
+<div class="flex gap-6 mb-2">
+<button class="text-white/50 text-xs font-bold uppercase tracking-widest hover:text-white transition-colors">Video</button>
+<button class="text-primary text-xs font-bold uppercase tracking-widest shadow-[0_4px_0_-1px_#135bec] pb-1">Photo</button>
+<button class="text-white/50 text-xs font-bold uppercase tracking-widest hover:text-white transition-colors">Scan</button>
+</div>
+</div>
+<!-- Bottom Navigation Bar -->
+<div class="relative z-30 bg-background-dark border-t border-white/5 px-6 pb-6 pt-3">
+<div class="flex justify-between items-center max-w-sm mx-auto">
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-[#9da6b9] hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">home</span>
+<span class="text-[10px] font-medium">Home</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-primary" href="#">
+<span class="material-symbols-filled text-[26px]">center_focus_strong</span>
+<span class="text-[10px] font-bold">Capture</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-[#9da6b9] hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</a>
+</div>
+</div>
+</div>
+</body></html>

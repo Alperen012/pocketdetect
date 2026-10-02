@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Advanced AI Settings</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0df2f2",
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#102222",
+                        "surface-dark": "#162b2b",
+                        "surface-light": "#eef2f2",
+                        "subtle-dark": "#1f3838",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display bg-background-light dark:bg-background-dark min-h-screen text-slate-900 dark:text-white overflow-x-hidden antialiased selection:bg-primary selection:text-black">
+<div class="relative flex h-full w-full max-w-md mx-auto flex-col pb-10">
+<!-- TopAppBar -->
+<div class="flex items-center p-4 pb-2 justify-between sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+<button class="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-2xl">arrow_back_ios_new</span>
+</button>
+<h2 class="text-lg font-bold leading-tight tracking-tight text-center flex-1">Advanced Settings</h2>
+<div class="size-10"></div> <!-- Spacer for centering -->
+</div>
+<!-- Section: Model Architecture -->
+<div class="mt-4">
+<h3 class="tracking-wide text-sm uppercase text-slate-500 dark:text-cyan-100/50 font-bold px-6 pb-2 pt-2">Model Architecture</h3>
+<div class="px-4 py-2">
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl p-4 border border-slate-200 dark:border-subtle-dark shadow-sm">
+<label class="flex flex-col w-full relative">
+<div class="flex justify-between items-center mb-2">
+<span class="text-sm font-medium text-slate-700 dark:text-slate-300">Active Model</span>
+<span class="material-symbols-outlined text-slate-400 text-[18px]">info</span>
+</div>
+<!-- Custom Select Wrapper -->
+<div class="relative">
+<select class="appearance-none w-full bg-white dark:bg-subtle-dark border border-slate-300 dark:border-subtle-dark text-slate-900 dark:text-white text-base rounded-lg focus:ring-2 focus:ring-primary focus:border-primary block p-3 pr-10 font-display transition-shadow">
+<option value="yolo_nano">YOLOv8 Nano (Quantized)</option>
+<option value="yolo_small">YOLOv8 Small</option>
+<option value="yolo_medium">YOLOv8 Medium</option>
+<option value="mobilenet">MobileNet V3 SSD</option>
+<option value="efficientdet">EfficientDet D0</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500 dark:text-primary">
+<span class="material-symbols-outlined">expand_more</span>
+</div>
+</div>
+<div class="mt-3 flex items-start gap-2">
+<span class="material-symbols-outlined text-primary text-sm mt-0.5">bolt</span>
+<p class="text-xs text-slate-500 dark:text-slate-400 leading-snug">
+                                Nano is optimized for real-time inference on mobile devices. Switching to Medium may increase latency.
+                            </p>
+</div>
+</label>
+</div>
+</div>
+</div>
+<!-- Section: Detection Thresholds -->
+<div class="mt-6">
+<h3 class="tracking-wide text-sm uppercase text-slate-500 dark:text-cyan-100/50 font-bold px-6 pb-2">Detection Thresholds</h3>
+<!-- Slider 1: Confidence -->
+<div class="px-4 py-2">
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl p-5 border border-slate-200 dark:border-subtle-dark shadow-sm">
+<div class="flex justify-between items-center mb-4">
+<span class="text-base font-medium">Confidence Threshold</span>
+<span class="text-primary font-bold font-display tabular-nums">0.50</span>
+</div>
+<div class="relative flex w-full items-center h-6 group cursor-pointer">
+<!-- Track Background -->
+<div class="absolute w-full h-1.5 bg-slate-200 dark:bg-subtle-dark rounded-full overflow-hidden">
+<!-- Active Track -->
+<div class="h-full bg-primary w-[50%]"></div>
+</div>
+<!-- Thumb -->
+<div class="absolute left-[50%] -ml-3 w-6 h-6 bg-white rounded-full shadow-lg border-2 border-primary flex items-center justify-center transform transition-transform group-hover:scale-110">
+<div class="w-1.5 h-1.5 bg-primary rounded-full"></div>
+</div>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-2">Minimum probability score to accept a detection.</p>
+</div>
+</div>
+<!-- Slider 2: IOU -->
+<div class="px-4 py-2">
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl p-5 border border-slate-200 dark:border-subtle-dark shadow-sm">
+<div class="flex justify-between items-center mb-4">
+<span class="text-base font-medium">IOU Threshold</span>
+<span class="text-primary font-bold font-display tabular-nums">0.45</span>
+</div>
+<div class="relative flex w-full items-center h-6 group cursor-pointer">
+<div class="absolute w-full h-1.5 bg-slate-200 dark:bg-subtle-dark rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[45%]"></div>
+</div>
+<div class="absolute left-[45%] -ml-3 w-6 h-6 bg-white rounded-full shadow-lg border-2 border-primary flex items-center justify-center transform transition-transform group-hover:scale-110">
+<div class="w-1.5 h-1.5 bg-primary rounded-full"></div>
+</div>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-2">Intersection over Union overlap limit for filtering.</p>
+</div>
+</div>
+</div>
+<!-- Section: Post-Processing -->
+<div class="mt-6">
+<h3 class="tracking-wide text-sm uppercase text-slate-500 dark:text-cyan-100/50 font-bold px-6 pb-2">Post-Processing</h3>
+<div class="px-4 space-y-3">
+<!-- Toggle Item -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl px-5 py-4 border border-slate-200 dark:border-subtle-dark shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-base font-medium">Non-Max Suppression</span>
+<span class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Prevent duplicate boxes</span>
+</div>
+<!-- Toggle Switch -->
+<button class="relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 bg-primary">
+<span class="sr-only">Use setting</span>
+<span aria-hidden="true" class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-background-dark shadow ring-0 transition duration-200 ease-in-out translate-x-5"></span>
+</button>
+</div>
+<!-- Number Input Item -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl px-5 py-4 border border-slate-200 dark:border-subtle-dark shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-base font-medium">Max Detections</span>
+<span class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Per single frame</span>
+</div>
+<div class="flex items-center">
+<input class="w-20 bg-white dark:bg-subtle-dark border border-slate-300 dark:border-subtle-dark rounded-lg text-center font-display text-base focus:border-primary focus:ring-1 focus:ring-primary py-2 text-slate-900 dark:text-white" type="number" value="100"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Reset Button -->
+<div class="mt-10 px-4 mb-8">
+<button class="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-medium rounded-xl text-slate-500 dark:text-slate-400 bg-slate-200 dark:bg-surface-dark hover:bg-slate-300 dark:hover:bg-subtle-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-all">
+<span class="absolute left-0 inset-y-0 flex items-center pl-3">
+<span class="material-symbols-outlined group-hover:rotate-180 transition-transform duration-500">restart_alt</span>
+</span>
+                Reset to Defaults
+            </button>
+<p class="text-center text-[10px] text-slate-400 dark:text-slate-600 mt-4 font-mono">APP VERSION 2.4.1 • MODEL YOLO V8</p>
+</div>
+</div>
+</body></html>
