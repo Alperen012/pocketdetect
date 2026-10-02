@@ -1,52 +1,106 @@
 {
   "@@locale": "en",
-
   "appTitle": "YOLO Mobile",
-  "@appTitle": { "description": "Application title shown in task switcher" },
-
+  "@appTitle": {
+    "description": "Application title shown in task switcher"
+  },
   "navHome": "Home",
   "navCapture": "Capture",
   "navPreferences": "Preferences",
   "navProfile": "Profile",
-
   "dashboardSubtitle": "Open the camera only when you want. A fast and controlled detection flow starts here.",
   "activeDetectionProfile": "Active Detection Profile",
   "selectedClassCount": "Selected classes: {count}",
-  "@selectedClassCount": { "placeholders": { "count": { "type": "int" } } },
+  "@selectedClassCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "resolutionDisplay": "Resolution: {label}",
-  "@resolutionDisplay": { "placeholders": { "label": { "type": "String" } } },
+  "@resolutionDisplay": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "thresholdDisplay": "Threshold: {value}",
-  "@thresholdDisplay": { "placeholders": { "value": { "type": "String" } } },
+  "@thresholdDisplay": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "editPreferences": "Edit Preferences",
   "areYouReady": "Are you ready?",
   "cameraStartsOnTap": "The camera starts only when you tap the button.",
   "startCamera": "Start Camera",
-
   "lowMemoryModeEnabled": "Low memory mode enabled.",
   "cameraInitFailed": "Camera could not be initialized",
   "photoCaptureFailed": "Failed to capture photo.",
   "noClassesSelected": "No classes selected",
   "detectingLabels": "Detecting: {labels}",
-  "@detectingLabels": { "placeholders": { "labels": { "type": "String" } } },
+  "@detectingLabels": {
+    "placeholders": {
+      "labels": {
+        "type": "String"
+      }
+    }
+  },
   "detectingLabelsMore": "Detecting: {first} +{count} more",
-  "@detectingLabelsMore": { "placeholders": { "first": { "type": "String" }, "count": { "type": "int" } } },
+  "@detectingLabelsMore": {
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "lowMemoryMode": "Low memory mode",
   "pickFromGallery": "Pick from Gallery",
   "flipCamera": "Flip Camera",
   "classCount": "{count} classes",
-  "@classCount": { "placeholders": { "count": { "type": "int" } } },
-
+  "@classCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "detectionResults": "Detection Results",
   "analysisSummary": "Analysis Summary",
   "results": "Results",
   "photoReadyTapToProcess": "Photo ready. Tap the button below to start processing.",
   "analysisError": "Analysis error: {error}",
-  "@analysisError": { "placeholders": { "error": { "type": "String" } } },
+  "@analysisError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "noDetectionsFound": "No detections found.",
   "confidenceValue": "Confidence: {value}",
-  "@confidenceValue": { "placeholders": { "value": { "type": "String" } } },
+  "@confidenceValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "itemCount": "{count} items",
-  "@itemCount": { "placeholders": { "count": { "type": "int" } } },
+  "@itemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "retake": "Retake",
   "starting": "Starting...",
   "startProcessing": "Start Processing",
@@ -64,20 +118,58 @@
   "analysisSteps": "• Computing object regions\n• Evaluating confidence scores\n• Preparing results",
   "reportTitle": "YOLO Mobile Detection Report",
   "reportGenerated": "Generated: {timestamp}",
-  "@reportGenerated": { "placeholders": { "timestamp": { "type": "String" } } },
+  "@reportGenerated": {
+    "placeholders": {
+      "timestamp": {
+        "type": "String"
+      }
+    }
+  },
   "reportImage": "Image: {path}",
-  "@reportImage": { "placeholders": { "path": { "type": "String" } } },
+  "@reportImage": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
   "reportTotalDetections": "Total detections: {count}",
-  "@reportTotalDetections": { "placeholders": { "count": { "type": "int" } } },
+  "@reportTotalDetections": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "reportSummaryHeader": "Summary:",
   "reportDetailedHeader": "Detailed Detections:",
   "reportBoundingBox": "  BBox: [{x}, {y}, {w}, {h}]",
-  "@reportBoundingBox": { "placeholders": { "x": { "type": "String" }, "y": { "type": "String" }, "w": { "type": "String" }, "h": { "type": "String" } } },
+  "@reportBoundingBox": {
+    "placeholders": {
+      "x": {
+        "type": "String"
+      },
+      "y": {
+        "type": "String"
+      },
+      "w": {
+        "type": "String"
+      },
+      "h": {
+        "type": "String"
+      }
+    }
+  },
   "showBoundingBoxes": "Show bounding boxes",
   "hideBoundingBoxes": "Hide bounding boxes",
   "inferenceTimeMs": "{ms} ms",
-  "@inferenceTimeMs": { "placeholders": { "ms": { "type": "int" } } },
-
+  "@inferenceTimeMs": {
+    "placeholders": {
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
   "advancedSettings": "Advanced Settings",
   "sectionModelArchitecture": "MODEL ARCHITECTURE",
   "activeModel": "Active Model",
@@ -113,7 +205,6 @@
   "choose": "Choose",
   "enterNumber": "Enter a number",
   "rangeOneToFiveHundred": "1 – 500",
-
   "detectionPreferences": "Detection Preferences",
   "reset": "Reset",
   "whatToDetect": "What should we look for?",
@@ -122,8 +213,13 @@
   "noCategoryFound": "No category matching search criteria found.",
   "partiallySelected": "Partially selected",
   "goToCamera": "Go to Camera  •  {count} classes selected",
-  "@goToCamera": { "placeholders": { "count": { "type": "int" } } },
-
+  "@goToCamera": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "profile": "Profile",
   "defaultUserName": "YOLO Mobile User",
   "localProfileOnDevice": "Local profile • On-device detection",
@@ -147,12 +243,10 @@
   "resetSettingsConfirmation": "All detection preferences will return to default values. Continue?",
   "cancel": "Cancel",
   "settingsResetSuccess": "Settings have been reset to defaults.",
-
   "resolutionFast": "Fast",
   "resolutionBalanced": "Balanced",
   "resolutionQuality": "Quality",
   "resolutionMax": "Maximum",
-
   "categoryVehicles": "Vehicles",
   "categoryTransportInfra": "Transport & Infrastructure",
   "categoryAnimals": "Animals",
@@ -165,7 +259,6 @@
   "categoryHomeAppliances": "Home Appliances",
   "categoryHousehold": "Household Items",
   "categoryPlants": "Plants",
-
   "modelImportWizardTitle": "Import Custom Model",
   "wizardStepFormat": "Requirements",
   "wizardStepModel": "Model File",
@@ -185,11 +278,32 @@
   "wizardValidating": "Validating model…",
   "wizardModelValid": "Model validated successfully",
   "wizardModelInputSize": "Input size: {width}×{height}",
-  "@wizardModelInputSize": { "placeholders": { "width": { "type": "int" }, "height": { "type": "int" } } },
+  "@wizardModelInputSize": {
+    "placeholders": {
+      "width": {
+        "type": "int"
+      },
+      "height": {
+        "type": "int"
+      }
+    }
+  },
   "wizardModelClasses": "Classes: {count}",
-  "@wizardModelClasses": { "placeholders": { "count": { "type": "int" } } },
+  "@wizardModelClasses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "wizardModelQuantType": "Quantization: {type}",
-  "@wizardModelQuantType": { "placeholders": { "type": { "type": "String" } } },
+  "@wizardModelQuantType": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
   "wizardErrorFileNotFound": "The selected file could not be found. Please try again.",
   "wizardErrorNotValidTflite": "This file is not a valid TensorFlow Lite model. Please select a .tflite file.",
   "wizardErrorInputShape": "Unsupported input shape. The model must accept [1, H, W, 3] input.",
@@ -198,17 +312,44 @@
   "wizardErrorOutputType": "Unsupported output type. Only INT8 and FLOAT32 outputs are supported.",
   "wizardLabelStepTitle": "Label File",
   "wizardLabelStepDesc": "This model detects {count} classes. You can provide a matching label file or use the default COCO labels.",
-  "@wizardLabelStepDesc": { "placeholders": { "count": { "type": "int" } } },
+  "@wizardLabelStepDesc": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "wizardSelectLabelFile": "Select Label File (.txt)",
   "wizardUseCocoLabels": "Use default COCO labels (80 classes)",
   "wizardLabelFileValid": "Label file valid — {count} classes loaded",
-  "@wizardLabelFileValid": { "placeholders": { "count": { "type": "int" } } },
+  "@wizardLabelFileValid": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "wizardLabelCountMismatch": "Label count mismatch: file has {fileCount} labels but model expects {modelCount}.",
-  "@wizardLabelCountMismatch": { "placeholders": { "fileCount": { "type": "int" }, "modelCount": { "type": "int" } } },
+  "@wizardLabelCountMismatch": {
+    "placeholders": {
+      "fileCount": {
+        "type": "int"
+      },
+      "modelCount": {
+        "type": "int"
+      }
+    }
+  },
   "wizardLabelFileNotFound": "Label file not found. Please select another file.",
   "wizardLabelReadError": "Could not read the label file. Please check the file and try again.",
   "wizardCocoWarning": "The default COCO labels have 80 classes. Your model expects {count} — labels may not match correctly.",
-  "@wizardCocoWarning": { "placeholders": { "count": { "type": "int" } } },
+  "@wizardCocoWarning": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "wizardSummaryTitle": "Import Summary",
   "wizardSummaryModel": "Model",
   "wizardSummaryInputSize": "Input Size",
@@ -228,10 +369,24 @@
   "wizardImportNewModelDesc": "Use a custom YOLO TFLite model for detection.",
   "wizardNoCustomModel": "No custom model loaded. Using the built-in YOLOv26 Nano model.",
   "customModelInputSize": "{width}×{height}",
-  "@customModelInputSize": { "placeholders": { "width": { "type": "int" }, "height": { "type": "int" } } },
+  "@customModelInputSize": {
+    "placeholders": {
+      "width": {
+        "type": "int"
+      },
+      "height": {
+        "type": "int"
+      }
+    }
+  },
   "customModelClassCount": "{count} classes",
-  "@customModelClassCount": { "placeholders": { "count": { "type": "int" } } },
-
+  "@customModelClassCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "navMarketplace": "Marketplace",
   "marketplaceTitle": "Model Marketplace",
   "marketplaceSearchHint": "Search models...",
@@ -247,14 +402,32 @@
   "marketplaceRetryDownload": "Retry Download",
   "marketplaceActivateModel": "Activate Model",
   "marketplaceModelActivated": "{name} activated!",
-  "@marketplaceModelActivated": { "placeholders": { "name": { "type": "String" } } },
+  "@marketplaceModelActivated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "marketplaceDeleteModel": "Delete Model",
   "marketplaceDeleteConfirm": "Remove the downloaded file for {name}?",
-  "@marketplaceDeleteConfirm": { "placeholders": { "name": { "type": "String" } } },
+  "@marketplaceDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "marketplaceValidating": "Validating model...",
   "marketplaceLargeFileTitle": "Large File",
   "marketplaceLargeFileMsg": "This model is {size}. You are not on Wi-Fi. Continue anyway?",
-  "@marketplaceLargeFileMsg": { "placeholders": { "size": { "type": "String" } } },
+  "@marketplaceLargeFileMsg": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "marketplaceDownload": "Download",
   "marketplaceCancel": "Cancel",
   "marketplaceDelete": "Delete",
@@ -310,9 +483,21 @@
   "liveDetectionOn": "Real-time detection active",
   "liveDetectionOff": "Live detection paused",
   "fpsDisplay": "{fps} FPS",
-  "@fpsDisplay": { "placeholders": { "fps": { "type": "String" } } },
+  "@fpsDisplay": {
+    "placeholders": {
+      "fps": {
+        "type": "String"
+      }
+    }
+  },
   "objectsDetected": "{count} objects detected",
-  "@objectsDetected": { "placeholders": { "count": { "type": "int" } } },
+  "@objectsDetected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "historyTitle": "Detection History",
   "historyEmpty": "No detections yet",
   "historyEmptyHint": "Captured photos with detections will appear here",
@@ -320,16 +505,46 @@
   "historyClearConfirm": "Delete all detection history? This cannot be undone.",
   "historyDelete": "Delete",
   "historyObjectCount": "{count} objects",
-  "@historyObjectCount": { "placeholders": { "count": { "type": "int" } } },
+  "@historyObjectCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "historyInferenceTime": "{ms}ms inference",
-  "@historyInferenceTime": { "placeholders": { "ms": { "type": "int" } } },
+  "@historyInferenceTime": {
+    "placeholders": {
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
   "batchTitle": "Batch Detection",
   "batchSelectImages": "Select Images",
   "batchProcessing": "Processing {current} of {total}...",
-  "@batchProcessing": { "placeholders": { "current": { "type": "int" }, "total": { "type": "int" } } },
+  "@batchProcessing": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "batchComplete": "Batch complete",
   "batchSummary": "{images} images processed, {objects} objects detected",
-  "@batchSummary": { "placeholders": { "images": { "type": "int" }, "objects": { "type": "int" } } },
+  "@batchSummary": {
+    "placeholders": {
+      "images": {
+        "type": "int"
+      },
+      "objects": {
+        "type": "int"
+      }
+    }
+  },
   "batchNoImages": "No images selected",
   "batchNoImagesHint": "Tap the button above to select photos from your gallery",
   "batchStartProcessing": "Run Detection",
@@ -339,7 +554,13 @@
   "modelBuiltIn": "Built-in",
   "modelDelete": "Delete",
   "modelDeleteConfirm": "Delete \"{name}\" from this device?",
-  "@modelDeleteConfirm": { "placeholders": { "name": { "type": "String" } } },
+  "@modelDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "modelDeleted": "Model deleted.",
   "modelImportFromFile": "Import from file",
   "modelImportFromUrl": "Import from URL",
@@ -350,7 +571,13 @@
   "modelDownloading": "Downloading…",
   "modelValidating": "Checking model…",
   "modelDownloadFailed": "Download failed: {error}",
-  "@modelDownloadFailed": { "placeholders": { "error": { "type": "String" } } },
+  "@modelDownloadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "modelLoadFailed": "The active model could not be loaded.",
   "modelSourceFile": "Imported file",
   "modelSourceUrl": "Downloaded from a link",
@@ -369,9 +596,21 @@
   "benchmarkLoad": "Load",
   "benchmarkNative": "Inside TFLite",
   "benchmarkRanOn": "Ran on {delegate} instead",
-  "@benchmarkRanOn": { "placeholders": { "delegate": { "type": "String" } } },
+  "@benchmarkRanOn": {
+    "placeholders": {
+      "delegate": {
+        "type": "String"
+      }
+    }
+  },
   "benchmarkFailed": "Failed: {error}",
-  "@benchmarkFailed": { "placeholders": { "error": { "type": "String" } } },
+  "@benchmarkFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "benchmarkShareText": "Share summary",
   "benchmarkShareJson": "Share as JSON",
   "benchmarkAccelCpu": "CPU",
@@ -386,15 +625,39 @@
   "compareRun": "Compare",
   "compareNeedMore": "Import a second model to compare two models side by side.",
   "compareResult": "{count} objects · {ms} ms",
-  "@compareResult": { "placeholders": { "count": { "type": "int" }, "ms": { "type": "int" } } },
+  "@compareResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
   "compareFailed": "Could not run {model}: {error}",
-  "@compareFailed": { "placeholders": { "model": { "type": "String" }, "error": { "type": "String" } } },
+  "@compareFailed": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "exportTitle": "Export",
   "exportJson": "Share as JSON",
   "exportCsv": "Share as CSV",
   "exportImage": "Share annotated image",
   "exportFailed": "Could not export: {error}",
-  "@exportFailed": { "placeholders": { "error": { "type": "String" } } },
+  "@exportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "navModels": "Models",
   "navSettings": "Settings",
   "onboardingTitle": "Detect objects on your phone",
@@ -405,5 +668,8 @@
   "onboardingCameraTitle": "Camera access",
   "onboardingCameraBody": "The camera is used only for live detection and photos. Android asks for permission the first time you open it. You can also pick pictures from your gallery.",
   "onboardingStart": "Get started",
-  "cameraPermissionDenied": "Camera access is off. Allow it in your phone's settings, or pick a picture from your gallery instead."
+  "cameraPermissionDenied": "Camera access is off. Allow it in your phone's settings, or pick a picture from your gallery instead.",
+  "aboutLicenses": "Open-source licenses",
+  "aboutLicensesDesc": "This app is free software (AGPL-3.0)",
+  "aboutLegalese": "Licensed under the GNU AGPL-3.0. The bundled model is derived from Ultralytics YOLO26 (AGPL-3.0)."
 }

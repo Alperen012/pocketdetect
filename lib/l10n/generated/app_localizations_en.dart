@@ -1189,4 +1189,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get cameraPermissionDenied =>
       'Camera access is off. Allow it in your phone\'s settings, or pick a picture from your gallery instead.';
+
+  @override
+  String get aboutLicenses => 'Open-source licenses';
+
+  @override
+  String get aboutLicensesDesc => 'This app is free software (AGPL-3.0)';
+
+  @override
+  String get aboutLegalese =>
+      'Licensed under the GNU AGPL-3.0. The bundled model is derived from Ultralytics YOLO26 (AGPL-3.0).';
 }

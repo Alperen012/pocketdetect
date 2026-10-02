@@ -171,6 +171,20 @@ class SettingsScreen extends StatelessWidget {
               icon: const Icon(Icons.restart_alt),
               label: Text(l10n.resetToDefaults),
             ),
+            const SizedBox(height: 12),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: Text(l10n.aboutLicenses),
+                subtitle: Text(l10n.aboutLicensesDesc),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => showLicensePage(
+                  context: context,
+                  applicationName: l10n.appTitle,
+                  applicationLegalese: l10n.aboutLegalese,
+                ),
+              ),
+            ),
           ],
         ),
       ),

@@ -1,13 +1,10 @@
 {
   "@@locale": "tr",
-
   "appTitle": "YOLO Mobile",
-
   "navHome": "Ana Sayfa",
   "navCapture": "Çekim",
   "navPreferences": "Tercihler",
   "navProfile": "Profil",
-
   "dashboardSubtitle": "Kamerayı yalnızca istediğinizde açın. Hızlı ve kontrollü bir tespit akışı burada başlar.",
   "activeDetectionProfile": "Aktif Tespit Profili",
   "selectedClassCount": "Seçili sınıf: {count}",
@@ -17,7 +14,6 @@
   "areYouReady": "Hazır mısınız?",
   "cameraStartsOnTap": "Kamera yalnızca düğmeye bastığınızda başlar.",
   "startCamera": "Kamerayı Başlat",
-
   "lowMemoryModeEnabled": "Düşük bellek modu etkin.",
   "cameraInitFailed": "Kamera başlatılamadı",
   "photoCaptureFailed": "Fotoğraf çekilemedi.",
@@ -28,7 +24,6 @@
   "pickFromGallery": "Galeriden Seç",
   "flipCamera": "Kamerayı Çevir",
   "classCount": "{count} sınıf",
-
   "detectionResults": "Tespit Sonuçları",
   "analysisSummary": "Analiz Özeti",
   "results": "Sonuçlar",
@@ -62,7 +57,6 @@
   "showBoundingBoxes": "Sınır kutularını göster",
   "hideBoundingBoxes": "Sınır kutularını gizle",
   "inferenceTimeMs": "{ms} ms",
-
   "advancedSettings": "Gelişmiş Ayarlar",
   "sectionModelArchitecture": "MODEL MİMARİSİ",
   "activeModel": "Aktif Model",
@@ -98,7 +92,6 @@
   "choose": "Seç",
   "enterNumber": "Sayı girin",
   "rangeOneToFiveHundred": "1 – 500",
-
   "detectionPreferences": "Tespit Tercihleri",
   "reset": "Sıfırla",
   "whatToDetect": "Ne aramalıyız?",
@@ -107,7 +100,6 @@
   "noCategoryFound": "Arama kriterine uygun kategori bulunamadı.",
   "partiallySelected": "Kısmen seçili",
   "goToCamera": "Kamera'ya Geç  •  {count} sınıf seçili",
-
   "profile": "Profil",
   "defaultUserName": "YOLO Mobile Kullanıcı",
   "localProfileOnDevice": "Yerel profil • Cihaz üstü tespit",
@@ -131,12 +123,10 @@
   "resetSettingsConfirmation": "Tüm tespit tercihleri varsayılan değerlere dönecek. Devam edilsin mi?",
   "cancel": "Vazgeç",
   "settingsResetSuccess": "Ayarlar varsayılan değerlere sıfırlandı.",
-
   "resolutionFast": "Hızlı",
   "resolutionBalanced": "Dengeli",
   "resolutionQuality": "Kalite",
   "resolutionMax": "Maksimum",
-
   "categoryVehicles": "Araçlar",
   "categoryTransportInfra": "Ulaşım & Altyapı",
   "categoryAnimals": "Hayvanlar",
@@ -149,7 +139,6 @@
   "categoryHomeAppliances": "Ev Aletleri",
   "categoryHousehold": "Ev Eşyaları",
   "categoryPlants": "Bitkiler",
-
   "modelImportWizardTitle": "Özel Model İçe Aktar",
   "wizardStepFormat": "Gereksinimler",
   "wizardStepModel": "Model Dosyası",
@@ -206,7 +195,6 @@
   "wizardNoCustomModel": "Özel model yüklenmedi. Yerleşik YOLOv26 Nano modeli kullanılıyor.",
   "customModelInputSize": "{width}×{height}",
   "customModelClassCount": "{count} sınıf",
-
   "navMarketplace": "Mağaza",
   "marketplaceTitle": "Model Mağazası",
   "marketplaceSearchHint": "Model ara...",
@@ -305,7 +293,13 @@
   "modelBuiltIn": "Yerleşik",
   "modelDelete": "Sil",
   "modelDeleteConfirm": "\"{name}\" bu cihazdan silinsin mi?",
-  "@modelDeleteConfirm": { "placeholders": { "name": { "type": "String" } } },
+  "@modelDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "modelDeleted": "Model silindi.",
   "modelImportFromFile": "Dosyadan içe aktar",
   "modelImportFromUrl": "Bağlantıdan içe aktar",
@@ -316,7 +310,13 @@
   "modelDownloading": "İndiriliyor…",
   "modelValidating": "Model kontrol ediliyor…",
   "modelDownloadFailed": "İndirme başarısız: {error}",
-  "@modelDownloadFailed": { "placeholders": { "error": { "type": "String" } } },
+  "@modelDownloadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "modelLoadFailed": "Aktif model yüklenemedi.",
   "modelSourceFile": "İçe aktarılan dosya",
   "modelSourceUrl": "Bağlantıdan indirildi",
@@ -335,9 +335,21 @@
   "benchmarkLoad": "Yükleme",
   "benchmarkNative": "TFLite içinde",
   "benchmarkRanOn": "Bunun yerine {delegate} üzerinde çalıştı",
-  "@benchmarkRanOn": { "placeholders": { "delegate": { "type": "String" } } },
+  "@benchmarkRanOn": {
+    "placeholders": {
+      "delegate": {
+        "type": "String"
+      }
+    }
+  },
   "benchmarkFailed": "Başarısız: {error}",
-  "@benchmarkFailed": { "placeholders": { "error": { "type": "String" } } },
+  "@benchmarkFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "benchmarkShareText": "Özeti paylaş",
   "benchmarkShareJson": "JSON olarak paylaş",
   "benchmarkAccelCpu": "CPU",
@@ -352,15 +364,39 @@
   "compareRun": "Karşılaştır",
   "compareNeedMore": "İki modeli yan yana karşılaştırmak için ikinci bir model içe aktarın.",
   "compareResult": "{count} nesne · {ms} ms",
-  "@compareResult": { "placeholders": { "count": { "type": "int" }, "ms": { "type": "int" } } },
+  "@compareResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
   "compareFailed": "{model} çalıştırılamadı: {error}",
-  "@compareFailed": { "placeholders": { "model": { "type": "String" }, "error": { "type": "String" } } },
+  "@compareFailed": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "exportTitle": "Dışa aktar",
   "exportJson": "JSON olarak paylaş",
   "exportCsv": "CSV olarak paylaş",
   "exportImage": "Kutulu görseli paylaş",
   "exportFailed": "Dışa aktarılamadı: {error}",
-  "@exportFailed": { "placeholders": { "error": { "type": "String" } } },
+  "@exportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "navModels": "Modeller",
   "navSettings": "Ayarlar",
   "onboardingTitle": "Telefonunuzda nesne tespiti",
@@ -371,5 +407,8 @@
   "onboardingCameraTitle": "Kamera erişimi",
   "onboardingCameraBody": "Kamera yalnızca canlı tespit ve fotoğraf için kullanılır. Android, ilk açılışta izin ister. Galerinizden resim de seçebilirsiniz.",
   "onboardingStart": "Başlayın",
-  "cameraPermissionDenied": "Kamera erişimi kapalı. Telefonunuzun ayarlarından izin verin ya da bunun yerine galeriden bir resim seçin."
+  "cameraPermissionDenied": "Kamera erişimi kapalı. Telefonunuzun ayarlarından izin verin ya da bunun yerine galeriden bir resim seçin.",
+  "aboutLicenses": "Açık kaynak lisansları",
+  "aboutLicensesDesc": "Bu uygulama özgür yazılımdır (AGPL-3.0)",
+  "aboutLegalese": "GNU AGPL-3.0 ile lisanslıdır. Gömülü model Ultralytics YOLO26 (AGPL-3.0) tabanlıdır."
 }

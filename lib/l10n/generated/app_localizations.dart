@@ -2215,6 +2215,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Camera access is off. Allow it in your phone\'s settings, or pick a picture from your gallery instead.'**
   String get cameraPermissionDenied;
+
+  /// No description provided for @aboutLicenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Open-source licenses'**
+  String get aboutLicenses;
+
+  /// No description provided for @aboutLicensesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'This app is free software (AGPL-3.0)'**
+  String get aboutLicensesDesc;
+
+  /// No description provided for @aboutLegalese.
+  ///
+  /// In en, this message translates to:
+  /// **'Licensed under the GNU AGPL-3.0. The bundled model is derived from Ultralytics YOLO26 (AGPL-3.0).'**
+  String get aboutLegalese;
 }
 
 class _AppLocalizationsDelegate

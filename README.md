@@ -54,6 +54,21 @@ flutter run --dart-define=MARKETPLACE=true \
   --dart-define=SUPABASE_ANON_KEY=<anon anahtarı>
 ```
 
+## Release derlemesi
+
+`android/key.properties` yoksa release derlemesi debug anahtarıyla imzalanır
+(yalnızca yerelde denemek için; Play'e yüklenemez). Yayın için bir upload
+keystore üretin ve `android/key.properties` dosyasını doldurun (`storePassword`,
+`keyPassword`, `keyAlias`, `storeFile`). Dosya ve keystore `.gitignore`'dadır,
+depoya girmemelidir.
+
+```bash
+flutter build appbundle --release
+```
+
+Mağaza metinleri ve veri güvenliği notları `docs/play/store-listing.md`,
+gizlilik politikası `docs/privacy-policy.md` dosyasındadır.
+
 ## Test ve kalite kontrolleri
 
 - Statik analiz: `flutter analyze`

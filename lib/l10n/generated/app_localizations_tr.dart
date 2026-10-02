@@ -1191,4 +1191,14 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get cameraPermissionDenied =>
       'Kamera erişimi kapalı. Telefonunuzun ayarlarından izin verin ya da bunun yerine galeriden bir resim seçin.';
+
+  @override
+  String get aboutLicenses => 'Açık kaynak lisansları';
+
+  @override
+  String get aboutLicensesDesc => 'Bu uygulama özgür yazılımdır (AGPL-3.0)';
+
+  @override
+  String get aboutLegalese =>
+      'GNU AGPL-3.0 ile lisanslıdır. Gömülü model Ultralytics YOLO26 (AGPL-3.0) tabanlıdır.';
 }
