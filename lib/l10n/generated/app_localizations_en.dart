@@ -1041,4 +1041,115 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get wizardErrorZipNoModel =>
       'The .zip does not contain a .tflite model.';
+
+  @override
+  String get benchmarkTitle => 'Benchmark';
+
+  @override
+  String get benchmarkIntro =>
+      'Measures how fast this model runs on this device with each accelerator. Keep the app open until it finishes; the screen may stutter while it runs.';
+
+  @override
+  String get benchmarkRun => 'Run benchmark';
+
+  @override
+  String get benchmarkRunAgain => 'Run again';
+
+  @override
+  String get benchmarkRunning => 'Running…';
+
+  @override
+  String get benchmarkMedian => 'Median';
+
+  @override
+  String get benchmarkMean => 'Mean';
+
+  @override
+  String get benchmarkP90 => 'p90';
+
+  @override
+  String get benchmarkMin => 'Fastest';
+
+  @override
+  String get benchmarkLoad => 'Load';
+
+  @override
+  String get benchmarkNative => 'Inside TFLite';
+
+  @override
+  String benchmarkRanOn(String delegate) {
+    return 'Ran on $delegate instead';
+  }
+
+  @override
+  String benchmarkFailed(String error) {
+    return 'Failed: $error';
+  }
+
+  @override
+  String get benchmarkShareText => 'Share summary';
+
+  @override
+  String get benchmarkShareJson => 'Share as JSON';
+
+  @override
+  String get benchmarkAccelCpu => 'CPU';
+
+  @override
+  String get benchmarkAccelGpu => 'GPU';
+
+  @override
+  String get benchmarkAccelNnapi => 'NNAPI';
+
+  @override
+  String get benchmarkAccelAuto => 'Auto';
+
+  @override
+  String get compareTitle => 'Compare models';
+
+  @override
+  String get compareModelA => 'Model A';
+
+  @override
+  String get compareModelB => 'Model B';
+
+  @override
+  String get compareChooseImage => 'Choose image';
+
+  @override
+  String get compareChangeImage => 'Change image';
+
+  @override
+  String get compareRun => 'Compare';
+
+  @override
+  String get compareNeedMore =>
+      'Import a second model to compare two models side by side.';
+
+  @override
+  String compareResult(int count, int ms) {
+    return '$count objects · $ms ms';
+  }
+
+  @override
+  String compareFailed(String model, String error) {
+    return 'Could not run $model: $error';
+  }
+
+  @override
+  String get exportTitle => 'Export';
+
+  @override
+  String get exportJson => 'Share as JSON';
+
+  @override
+  String get exportCsv => 'Share as CSV';
+
+  @override
+  String get exportImage => 'Share annotated image';
+
+  @override
+  String exportFailed(String error) {
+    return 'Could not export: $error';
+  }
 }

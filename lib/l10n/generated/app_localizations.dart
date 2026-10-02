@@ -1951,6 +1951,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The .zip does not contain a .tflite model.'**
   String get wizardErrorZipNoModel;
+
+  /// No description provided for @benchmarkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Benchmark'**
+  String get benchmarkTitle;
+
+  /// No description provided for @benchmarkIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Measures how fast this model runs on this device with each accelerator. Keep the app open until it finishes; the screen may stutter while it runs.'**
+  String get benchmarkIntro;
+
+  /// No description provided for @benchmarkRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Run benchmark'**
+  String get benchmarkRun;
+
+  /// No description provided for @benchmarkRunAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Run again'**
+  String get benchmarkRunAgain;
+
+  /// No description provided for @benchmarkRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Running…'**
+  String get benchmarkRunning;
+
+  /// No description provided for @benchmarkMedian.
+  ///
+  /// In en, this message translates to:
+  /// **'Median'**
+  String get benchmarkMedian;
+
+  /// No description provided for @benchmarkMean.
+  ///
+  /// In en, this message translates to:
+  /// **'Mean'**
+  String get benchmarkMean;
+
+  /// No description provided for @benchmarkP90.
+  ///
+  /// In en, this message translates to:
+  /// **'p90'**
+  String get benchmarkP90;
+
+  /// No description provided for @benchmarkMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Fastest'**
+  String get benchmarkMin;
+
+  /// No description provided for @benchmarkLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Load'**
+  String get benchmarkLoad;
+
+  /// No description provided for @benchmarkNative.
+  ///
+  /// In en, this message translates to:
+  /// **'Inside TFLite'**
+  String get benchmarkNative;
+
+  /// No description provided for @benchmarkRanOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Ran on {delegate} instead'**
+  String benchmarkRanOn(String delegate);
+
+  /// No description provided for @benchmarkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed: {error}'**
+  String benchmarkFailed(String error);
+
+  /// No description provided for @benchmarkShareText.
+  ///
+  /// In en, this message translates to:
+  /// **'Share summary'**
+  String get benchmarkShareText;
+
+  /// No description provided for @benchmarkShareJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Share as JSON'**
+  String get benchmarkShareJson;
+
+  /// No description provided for @benchmarkAccelCpu.
+  ///
+  /// In en, this message translates to:
+  /// **'CPU'**
+  String get benchmarkAccelCpu;
+
+  /// No description provided for @benchmarkAccelGpu.
+  ///
+  /// In en, this message translates to:
+  /// **'GPU'**
+  String get benchmarkAccelGpu;
+
+  /// No description provided for @benchmarkAccelNnapi.
+  ///
+  /// In en, this message translates to:
+  /// **'NNAPI'**
+  String get benchmarkAccelNnapi;
+
+  /// No description provided for @benchmarkAccelAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get benchmarkAccelAuto;
+
+  /// No description provided for @compareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare models'**
+  String get compareTitle;
+
+  /// No description provided for @compareModelA.
+  ///
+  /// In en, this message translates to:
+  /// **'Model A'**
+  String get compareModelA;
+
+  /// No description provided for @compareModelB.
+  ///
+  /// In en, this message translates to:
+  /// **'Model B'**
+  String get compareModelB;
+
+  /// No description provided for @compareChooseImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose image'**
+  String get compareChooseImage;
+
+  /// No description provided for @compareChangeImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Change image'**
+  String get compareChangeImage;
+
+  /// No description provided for @compareRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare'**
+  String get compareRun;
+
+  /// No description provided for @compareNeedMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Import a second model to compare two models side by side.'**
+  String get compareNeedMore;
+
+  /// No description provided for @compareResult.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} objects · {ms} ms'**
+  String compareResult(int count, int ms);
+
+  /// No description provided for @compareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not run {model}: {error}'**
+  String compareFailed(String model, String error);
+
+  /// No description provided for @exportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get exportTitle;
+
+  /// No description provided for @exportJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Share as JSON'**
+  String get exportJson;
+
+  /// No description provided for @exportCsv.
+  ///
+  /// In en, this message translates to:
+  /// **'Share as CSV'**
+  String get exportCsv;
+
+  /// No description provided for @exportImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Share annotated image'**
+  String get exportImage;
+
+  /// No description provided for @exportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not export: {error}'**
+  String exportFailed(String error);
 }
 
 class _AppLocalizationsDelegate

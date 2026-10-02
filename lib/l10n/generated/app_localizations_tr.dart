@@ -1043,4 +1043,115 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get wizardErrorZipNoModel => 'Bu .zip içinde .tflite modeli yok.';
+
+  @override
+  String get benchmarkTitle => 'Performans testi';
+
+  @override
+  String get benchmarkIntro =>
+      'Bu modelin bu cihazda her hızlandırıcıyla ne kadar hızlı çalıştığını ölçer. Bitene kadar uygulamayı açık tutun; çalışırken ekran takılabilir.';
+
+  @override
+  String get benchmarkRun => 'Testi başlat';
+
+  @override
+  String get benchmarkRunAgain => 'Tekrar çalıştır';
+
+  @override
+  String get benchmarkRunning => 'Çalışıyor…';
+
+  @override
+  String get benchmarkMedian => 'Medyan';
+
+  @override
+  String get benchmarkMean => 'Ortalama';
+
+  @override
+  String get benchmarkP90 => 'p90';
+
+  @override
+  String get benchmarkMin => 'En hızlı';
+
+  @override
+  String get benchmarkLoad => 'Yükleme';
+
+  @override
+  String get benchmarkNative => 'TFLite içinde';
+
+  @override
+  String benchmarkRanOn(String delegate) {
+    return 'Bunun yerine $delegate üzerinde çalıştı';
+  }
+
+  @override
+  String benchmarkFailed(String error) {
+    return 'Başarısız: $error';
+  }
+
+  @override
+  String get benchmarkShareText => 'Özeti paylaş';
+
+  @override
+  String get benchmarkShareJson => 'JSON olarak paylaş';
+
+  @override
+  String get benchmarkAccelCpu => 'CPU';
+
+  @override
+  String get benchmarkAccelGpu => 'GPU';
+
+  @override
+  String get benchmarkAccelNnapi => 'NNAPI';
+
+  @override
+  String get benchmarkAccelAuto => 'Otomatik';
+
+  @override
+  String get compareTitle => 'Modelleri karşılaştır';
+
+  @override
+  String get compareModelA => 'Model A';
+
+  @override
+  String get compareModelB => 'Model B';
+
+  @override
+  String get compareChooseImage => 'Görsel seç';
+
+  @override
+  String get compareChangeImage => 'Görseli değiştir';
+
+  @override
+  String get compareRun => 'Karşılaştır';
+
+  @override
+  String get compareNeedMore =>
+      'İki modeli yan yana karşılaştırmak için ikinci bir model içe aktarın.';
+
+  @override
+  String compareResult(int count, int ms) {
+    return '$count nesne · $ms ms';
+  }
+
+  @override
+  String compareFailed(String model, String error) {
+    return '$model çalıştırılamadı: $error';
+  }
+
+  @override
+  String get exportTitle => 'Dışa aktar';
+
+  @override
+  String get exportJson => 'JSON olarak paylaş';
+
+  @override
+  String get exportCsv => 'CSV olarak paylaş';
+
+  @override
+  String get exportImage => 'Kutulu görseli paylaş';
+
+  @override
+  String exportFailed(String error) {
+    return 'Dışa aktarılamadı: $error';
+  }
 }

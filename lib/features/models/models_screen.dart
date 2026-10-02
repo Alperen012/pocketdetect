@@ -9,6 +9,8 @@ import '../../core/services/download_manager.dart';
 import '../../core/services/model_library_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../settings/widgets/model_import_wizard.dart';
+import 'benchmark_screen.dart';
+import 'compare_screen.dart';
 
 /// The model library: pick the active model, import new ones, delete old ones.
 class ModelsScreen extends StatelessWidget {
@@ -21,7 +23,18 @@ class ModelsScreen extends StatelessWidget {
     final detectionError = context.watch<DetectionService>().error;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.modelsTitle)),
+      appBar: AppBar(
+        title: Text(l10n.modelsTitle),
+        actions: <Widget>[
+          IconButton(
+            tooltip: l10n.compareTitle,
+            icon: const Icon(Icons.compare),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const CompareScreen()),
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(20),
@@ -106,37 +119,54 @@ class _ModelTile extends StatelessWidget {
           '${model.quantType}\n${_sourceLabel(context)}',
         ),
         isThreeLine: true,
-        trailing: isActive
-            ? Text(
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            if (isActive)
+              Text(
                 l10n.modelActive,
                 style: const TextStyle(
                   color: AppColors.accent,
                   fontWeight: FontWeight.w600,
                 ),
-              )
-            : PopupMenuButton<String>(
-                onSelected: (action) {
-                  if (action == 'use') {
+              ),
+            PopupMenuButton<String>(
+              onSelected: (action) {
+                switch (action) {
+                  case 'use':
                     library.activate(model.id);
-                  } else if (action == 'delete') {
+                  case 'benchmark':
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => BenchmarkScreen(model: model),
+                      ),
+                    );
+                  case 'delete':
                     _confirmDelete(context, library);
-                  }
-                },
-                itemBuilder: (_) => <PopupMenuEntry<String>>[
+                }
+              },
+              itemBuilder: (_) => <PopupMenuEntry<String>>[
+                if (!isActive)
                   PopupMenuItem<String>(
                     value: 'use',
                     child: Text(l10n.modelUse),
                   ),
-                  if (!model.isBuiltIn)
-                    PopupMenuItem<String>(
-                      value: 'delete',
-                      child: Text(
-                        l10n.modelDelete,
-                        style: const TextStyle(color: Colors.redAccent),
-                      ),
+                PopupMenuItem<String>(
+                  value: 'benchmark',
+                  child: Text(l10n.benchmarkTitle),
+                ),
+                if (!model.isBuiltIn)
+                  PopupMenuItem<String>(
+                    value: 'delete',
+                    child: Text(
+                      l10n.modelDelete,
+                      style: const TextStyle(color: Colors.redAccent),
                     ),
-                ],
-              ),
+                  ),
+              ],
+            ),
+          ],
+        ),
         onTap: isActive ? null : () => library.activate(model.id),
         onLongPress:
             model.isBuiltIn ? null : () => _confirmDelete(context, library),

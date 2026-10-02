@@ -137,6 +137,29 @@ void main() {
     expect(find.text('Delete'), findsNothing);
   });
 
+  testWidgets('the menu offers a benchmark that opens its screen',
+      (tester) async {
+    await tester.pumpWidget(app());
+
+    await tester.tap(find.byType(PopupMenuButton<String>).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Benchmark'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Run benchmark'), findsOneWidget);
+    expect(find.text('YOLO26 Nano (INT8)'), findsOneWidget);
+  });
+
+  testWidgets('the app bar opens the comparison screen', (tester) async {
+    await tester.pumpWidget(app());
+
+    await tester.tap(find.byTooltip('Compare models'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Model A'), findsOneWidget);
+    expect(find.text('Model B'), findsOneWidget);
+  });
+
   testWidgets('rejects a non-http URL without starting a download',
       (tester) async {
     await tester.pumpWidget(app());
