@@ -972,4 +972,68 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get batchStartProcessing => 'Tespiti Başlat';
+
+  @override
+  String get modelsTitle => 'Modeller';
+
+  @override
+  String get modelActive => 'Aktif';
+
+  @override
+  String get modelUse => 'Bu modeli kullan';
+
+  @override
+  String get modelBuiltIn => 'Yerleşik';
+
+  @override
+  String get modelDelete => 'Sil';
+
+  @override
+  String modelDeleteConfirm(String name) {
+    return '\"$name\" bu cihazdan silinsin mi?';
+  }
+
+  @override
+  String get modelDeleted => 'Model silindi.';
+
+  @override
+  String get modelImportFromFile => 'Dosyadan içe aktar';
+
+  @override
+  String get modelImportFromUrl => 'Bağlantıdan içe aktar';
+
+  @override
+  String get modelUrlDialogTitle => 'Model indir';
+
+  @override
+  String get modelUrlHint => 'https://example.com/model.tflite';
+
+  @override
+  String get modelUrlInvalid => 'Geçerli bir http(s) bağlantısı girin.';
+
+  @override
+  String get modelDownload => 'İndir';
+
+  @override
+  String get modelDownloading => 'İndiriliyor…';
+
+  @override
+  String get modelValidating => 'Model kontrol ediliyor…';
+
+  @override
+  String modelDownloadFailed(String error) {
+    return 'İndirme başarısız: $error';
+  }
+
+  @override
+  String get modelLoadFailed => 'Aktif model yüklenemedi.';
+
+  @override
+  String get modelSourceFile => 'İçe aktarılan dosya';
+
+  @override
+  String get modelSourceUrl => 'Bağlantıdan indirildi';
+
+  @override
+  String get modelSourceMarketplace => 'Pazaryeri';
 }

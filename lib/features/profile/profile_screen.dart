@@ -6,6 +6,7 @@ import '../../core/models/category_group.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/detection_service.dart';
 import '../../core/services/download_manager.dart';
+import '../../core/services/model_library_service.dart';
 import '../../core/services/settings_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../auth/login_screen.dart';
@@ -19,6 +20,7 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsController>();
     final detectionService = context.watch<DetectionService>();
+    final activeModel = context.watch<ModelLibraryService>().activeModel;
     final l10n = context.l10n;
 
     final selected = settings.selectedLabels;
@@ -126,40 +128,29 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   _StatusRow(
                     label: l10n.modelIdLabel,
-                    value: settings.settings.useCustomModel
-                        ? l10n.customTfliteLink
-                        : settings.settings.modelId,
+                    value: activeModel.name,
                     isPositive: true,
-                    onTap: settings.settings.useCustomModel
-                        ? () => Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                builder: (_) => const SettingsScreen(),
-                              ),
-                            )
-                        : null,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const SettingsScreen(),
+                      ),
+                    ),
                   ),
-                  if (settings.settings.useCustomModel &&
-                      settings.settings.customModelInputWidth != null)
-                    _StatusRow(
-                      label: l10n.wizardSummaryInputSize,
-                      value:
-                          '${settings.settings.customModelInputWidth}×${settings.settings.customModelInputHeight}',
-                      isPositive: true,
-                    ),
-                  if (settings.settings.useCustomModel &&
-                      settings.settings.customModelClassCount != null)
-                    _StatusRow(
-                      label: l10n.wizardSummaryClassCount,
-                      value: '${settings.settings.customModelClassCount}',
-                      isPositive: true,
-                    ),
-                  if (settings.settings.useCustomModel &&
-                      settings.settings.customModelQuantType != null)
-                    _StatusRow(
-                      label: l10n.wizardSummaryQuantization,
-                      value: settings.settings.customModelQuantType!,
-                      isPositive: true,
-                    ),
+                  _StatusRow(
+                    label: l10n.wizardSummaryInputSize,
+                    value: '${activeModel.inputWidth}×${activeModel.inputHeight}',
+                    isPositive: true,
+                  ),
+                  _StatusRow(
+                    label: l10n.wizardSummaryClassCount,
+                    value: '${activeModel.classCount}',
+                    isPositive: true,
+                  ),
+                  _StatusRow(
+                    label: l10n.wizardSummaryQuantization,
+                    value: activeModel.quantType,
+                    isPositive: true,
+                  ),
                   _StatusRow(
                     label: l10n.resolution,
                     value: settings.settings.resolutionProfile.localizedDisplayLabel(l10n),
@@ -377,6 +368,7 @@ class ProfileScreen extends StatelessWidget {
             // ─── Downloaded Models ────────────────────────
             Consumer<DownloadManager>(
               builder: (context, dm, _) {
+                final library = context.read<ModelLibraryService>();
                 final downloaded = dm.downloadedModels;
                 if (downloaded.isEmpty) return const SizedBox.shrink();
 
@@ -426,7 +418,9 @@ class ProfileScreen extends StatelessWidget {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        '${meta.name} v${meta.version}',
+                                        meta.version == null
+                                            ? meta.name
+                                            : '${meta.name} v${meta.version}',
                                         style: const TextStyle(
                                           color: AppColors.textPrimary,
                                           fontSize: 13,
@@ -445,7 +439,7 @@ class ProfileScreen extends StatelessWidget {
                                 ),
                                 GestureDetector(
                                   onTap: () =>
-                                      dm.activateModel(meta.modelId),
+                                      library.activate(meta.id),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 10, vertical: 5),

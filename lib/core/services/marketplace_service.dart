@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/marketplace_model.dart';
 import '../models/model_review.dart';
+import 'download_manager.dart';
 
 /// Sorting options for the marketplace.
 enum MarketplaceSort {
@@ -17,7 +18,7 @@ enum MarketplaceSort {
 }
 
 /// Service responsible for all marketplace API calls and state management.
-class MarketplaceService extends ChangeNotifier {
+class MarketplaceService extends ChangeNotifier implements DownloadRecorder {
   MarketplaceService(this._prefs) {
     _client = Supabase.instance.client;
     _loadCachedModels();
@@ -474,6 +475,7 @@ class MarketplaceService extends ChangeNotifier {
   // ─── Record download ──────────────────────────────────────
 
   /// Record a download event and return a download URL.
+  @override
   Future<String?> recordDownload(String modelId, String version) async {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) return null;
@@ -602,6 +604,7 @@ class MarketplaceService extends ChangeNotifier {
     return list?.toSet() ?? {};
   }
 
+  @override
   void markAsDownloaded(String modelId) {
     final ids = _getDownloadedModelIds();
     ids.add(modelId);

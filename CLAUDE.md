@@ -43,9 +43,9 @@ It exports `yolo26n.pt` as INT8 TFLite at `imgsz=832` with `end2end=False, nms=F
 
 ### State and dependency wiring
 
-There is no DI framework. `lib/main.dart` constructs every service by hand and exposes each one through `MultiProvider` as a `ChangeNotifier`: `SettingsController`, `DetectionService`, `AuthService`, `MarketplaceService`, `DownloadManager`, `DetectionHistoryService`. Screens read them with `context.read` / `context.watch`.
+There is no DI framework. `lib/main.dart` constructs every service by hand and exposes each one through `MultiProvider` as a `ChangeNotifier`: `SettingsController`, `ModelLibraryService`, `DetectionService`, `AuthService`, `MarketplaceService`, `DownloadManager`, `DetectionHistoryService`. Screens read them with `context.read` / `context.watch`.
 
-`main.dart` also registers a listener on `SettingsController` that calls `DetectionService.reloadIfNeeded`, so any settings change that affects the model (custom model toggle, model path, labels path) hot-swaps the interpreter. Reloads are serialized: a change arriving during a load is parked in `_pendingSettings` and applied when the load finishes.
+`main.dart` also registers a listener on `ModelLibraryService` that calls `DetectionService.reloadIfNeeded(activeModel)`, so activating, importing or deleting a model hot-swaps the interpreter. Reloads are serialized: a request arriving during a load is parked in `_pendingModel` and applied when the load finishes.
 
 `HomeShell` is an `IndexedStack` with five tabs (home, capture, preferences, marketplace, profile). All tabs stay mounted, so `CaptureScreen` takes an `isActive` flag and creates or disposes the camera controller when its tab gains or loses focus.
 
@@ -68,23 +68,23 @@ Things to know before changing it:
 - Interpreter creation tries NNAPI, then the GPU delegate, then CPU. `DetectionService.activeDelegate` and `delegateFailures` report what happened.
 - Top-level functions and message classes at the top of the file exist because `compute()` needs top-level entry points and sendable messages. `DetectedObject` is rebuilt on the main isolate after the decode step.
 
-### Custom and marketplace models
+### Model library
 
-Both paths end in the same `SettingsController` calls (`updateCustomModelPath`, `updateCustomLabelsPath`, `updateCustomModelMetadata`, `updateUseCustomModel`):
+`ModelLibraryService` owns which models exist and which one is active. `InstalledModel` describes one (id, name, file or asset path, labels, input size, class count, quantization, origin). The bundled model is always present as `InstalledModel.builtIn` and cannot be removed; there is no "use custom model" toggle anymore, and `AppSettings` holds only detection tuning.
 
-- Local import: `features/settings/widgets/model_import_wizard.dart`, validated with `ModelValidator`.
-- Marketplace: `DownloadManager` downloads with Dio into `<app documents>/marketplace_models/`, validates with `ModelValidator`, and `activateModel` applies it.
-
-Marketplace models are activated with a null labels path, so they use the bundled COCO labels and skip the label-count check. The selected-label filter only makes sense for COCO names, so every caller (results, batch, live) passes `filterBySelectedLabels: !useCustomModel` to the detection methods; the parameter defaults to `true`. The preferences screen's class selection is built from the hard-coded COCO groups in `core/models/category_group.dart`.
+- Imported `.tflite` files are copied to `<app documents>/models/<id>/model.tflite` so they outlive the file picker's temp path. Entries whose file has vanished are dropped on startup.
+- All import paths end in `ModelLibraryService.installFile`, which takes a successful `ModelValidator` result: the wizard in `features/settings/widgets/model_import_wizard.dart` (file), `DownloadManager.importFromUrl` (link) and `DownloadManager.downloadModel` (marketplace; the download is counted only after it installs). `features/models/models_screen.dart` is the UI.
+- Labels: an explicit list wins; otherwise `usesCocoLabels` means the bundled COCO names; otherwise `class_N` is generated. Downloads carry no label file, so they assume COCO only when the model has 80 classes.
+- The class-selection filter is built from the hard-coded COCO groups in `core/models/category_group.dart` and only applies when `InstalledModel.supportsLabelFilter` (COCO labels). Every detection caller passes `filterBySelectedLabels: model.supportsLabelFilter`; the parameter defaults to `true`.
+- The old single-custom-model settings keys are migrated into the library once on first start, then deleted (`ModelLibraryService._migrateLegacySettings`).
 
 ### Persistence
 
 Everything local goes through `SharedPreferences`; there is no database.
 
-- `SettingsController` stores one key per setting.
+- `SettingsController` stores one key per setting. `ModelLibraryService` stores the imported-model list as JSON (`installed_models_v1`) plus `active_model_id`.
 - `DetectionHistoryService` stores a single encoded list, capped at 50 entries, newest first.
 - `MarketplaceService` caches the model list.
-- `DownloadManager` stores downloaded-model metadata in a hand-rolled format (`key=value` pairs joined by `;`, entries joined by `|||`), not JSON.
 
 ### Supabase backend
 
@@ -109,5 +109,5 @@ No schema or migrations live in this repo. The client code expects:
 
 - Tests live in `test/`, mirroring `lib/`. Services backed by preferences are tested with `SharedPreferences.setMockInitialValues({})`.
 - Widget tests wrap the widget in `MultiProvider` plus a `MaterialApp` with the localization delegates and `locale: const Locale('en')`. See `buildTestApp` in `test/widget_test.dart`.
-- `AuthService` and `MarketplaceService` read `Supabase.instance.client` in their constructors, and `DownloadManager` depends on `MarketplaceService`. None of them can be constructed in a test without initializing Supabase, and the existing tests avoid them.
-- `DetectionService` needs the native TFLite library and has no tests.
+- `AuthService` and `MarketplaceService` read `Supabase.instance.client` in their constructors, so they cannot be constructed in a test without initializing Supabase. `DownloadManager` depends only on the small `DownloadRecorder` interface (which `MarketplaceService` implements) and takes an injectable downloader, validator and temp directory, so it is tested with fakes. `ModelLibraryService` tests use real temp directories.
+- `DetectionService`, `ModelValidator` and `createInterpreter` need the native TFLite library and have no tests; their pure helpers (`lib/core/detection/`) do.

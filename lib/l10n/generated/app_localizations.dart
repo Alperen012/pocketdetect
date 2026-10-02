@@ -1819,6 +1819,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Run Detection'**
   String get batchStartProcessing;
+
+  /// No description provided for @modelsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Models'**
+  String get modelsTitle;
+
+  /// No description provided for @modelActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get modelActive;
+
+  /// No description provided for @modelUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this model'**
+  String get modelUse;
+
+  /// No description provided for @modelBuiltIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in'**
+  String get modelBuiltIn;
+
+  /// No description provided for @modelDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get modelDelete;
+
+  /// No description provided for @modelDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\" from this device?'**
+  String modelDeleteConfirm(String name);
+
+  /// No description provided for @modelDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Model deleted.'**
+  String get modelDeleted;
+
+  /// No description provided for @modelImportFromFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from file'**
+  String get modelImportFromFile;
+
+  /// No description provided for @modelImportFromUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from URL'**
+  String get modelImportFromUrl;
+
+  /// No description provided for @modelUrlDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Download a model'**
+  String get modelUrlDialogTitle;
+
+  /// No description provided for @modelUrlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'https://example.com/model.tflite'**
+  String get modelUrlHint;
+
+  /// No description provided for @modelUrlInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid http(s) link.'**
+  String get modelUrlInvalid;
+
+  /// No description provided for @modelDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get modelDownload;
+
+  /// No description provided for @modelDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading…'**
+  String get modelDownloading;
+
+  /// No description provided for @modelValidating.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking model…'**
+  String get modelValidating;
+
+  /// No description provided for @modelDownloadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Download failed: {error}'**
+  String modelDownloadFailed(String error);
+
+  /// No description provided for @modelLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The active model could not be loaded.'**
+  String get modelLoadFailed;
+
+  /// No description provided for @modelSourceFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported file'**
+  String get modelSourceFile;
+
+  /// No description provided for @modelSourceUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded from a link'**
+  String get modelSourceUrl;
+
+  /// No description provided for @modelSourceMarketplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Marketplace'**
+  String get modelSourceMarketplace;
 }
 
 class _AppLocalizationsDelegate

@@ -13,6 +13,7 @@ import '../../core/l10n/l10n_extensions.dart';
 import '../../core/models/detected_object.dart';
 import '../../core/services/detection_service.dart';
 import '../../core/services/device_capabilities.dart';
+import '../../core/services/model_library_service.dart';
 import '../../core/services/settings_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../results/results_screen.dart';
@@ -225,6 +226,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
       final sc = context.read<SettingsController>();
       final ds = context.read<DetectionService>();
       final settings = sc.settings;
+      final model = context.read<ModelLibraryService>().activeModel;
 
       // Convert + rotate upright off the UI thread.
       final image = await compute(convertCameraFrame, frame);
@@ -237,7 +239,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
         useNms: settings.useNms,
         maxDetections: settings.maxDetections,
         selectedLabels: sc.selectedLabels,
-        filterBySelectedLabels: !settings.useCustomModel,
+        filterBySelectedLabels: model.supportsLabelFilter,
       );
 
       // Update FPS counter

@@ -12,6 +12,7 @@ import '../../core/models/detected_object.dart';
 import '../../core/models/detection_history_entry.dart';
 import '../../core/services/detection_history_service.dart';
 import '../../core/services/detection_service.dart';
+import '../../core/services/model_library_service.dart';
 import '../../core/services/settings_controller.dart';
 import '../../core/theme/app_colors.dart';
 
@@ -77,8 +78,9 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
     final detectionService = context.read<DetectionService>();
     final settings = context.read<SettingsController>();
+    final model = context.read<ModelLibraryService>().activeModel;
 
-    await detectionService.reloadIfNeeded(settings.settings);
+    await detectionService.reloadIfNeeded(model);
 
     if (detectionService.error != null) {
       if (mounted) {
@@ -95,7 +97,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
       useNms: settings.settings.useNms,
       maxDetections: settings.settings.maxDetections,
       selectedLabels: settings.selectedLabels,
-      filterBySelectedLabels: !settings.settings.useCustomModel,
+      filterBySelectedLabels: model.supportsLabelFilter,
     );
 
     setState(() {
@@ -115,9 +117,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
     future.then((detections) {
       if (!mounted || detections.isEmpty) return;
       final historyService = context.read<DetectionHistoryService>();
-      final modelName = settings.settings.useCustomModel
-          ? (settings.settings.customModelName ?? 'Custom')
-          : 'YOLO26n';
+      final modelName = model.name;
       historyService.addEntry(DetectionHistoryEntry(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         imagePath: widget.imageFile.path,

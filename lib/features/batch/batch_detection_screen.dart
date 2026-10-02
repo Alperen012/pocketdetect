@@ -9,6 +9,7 @@ import '../../core/models/detected_object.dart';
 import '../../core/models/detection_history_entry.dart';
 import '../../core/services/detection_history_service.dart';
 import '../../core/services/detection_service.dart';
+import '../../core/services/model_library_service.dart';
 import '../../core/services/settings_controller.dart';
 import '../../core/theme/app_colors.dart';
 
@@ -50,8 +51,9 @@ class _BatchDetectionScreenState extends State<BatchDetectionScreen> {
     final sc = context.read<SettingsController>();
     final historyService = context.read<DetectionHistoryService>();
     final settings = sc.settings;
+    final model = context.read<ModelLibraryService>().activeModel;
 
-    await ds.reloadIfNeeded(settings);
+    await ds.reloadIfNeeded(model);
 
     for (var i = 0; i < _images.length; i++) {
       if (!mounted) return;
@@ -66,7 +68,7 @@ class _BatchDetectionScreenState extends State<BatchDetectionScreen> {
           useNms: settings.useNms,
           maxDetections: settings.maxDetections,
           selectedLabels: sc.selectedLabels,
-          filterBySelectedLabels: !settings.useCustomModel,
+          filterBySelectedLabels: model.supportsLabelFilter,
         );
 
         _results.add(_BatchResult(
@@ -83,7 +85,7 @@ class _BatchDetectionScreenState extends State<BatchDetectionScreen> {
             detections: detections,
             timestamp: DateTime.now(),
             inferenceMs: ds.lastInferenceMs,
-            modelName: settings.useCustomModel ? 'Custom' : 'YOLOv8n',
+            modelName: model.name,
           ));
         }
       } catch (e) {

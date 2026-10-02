@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -13,6 +16,7 @@ import 'core/services/detection_history_service.dart';
 import 'core/services/detection_service.dart';
 import 'core/services/download_manager.dart';
 import 'core/services/marketplace_service.dart';
+import 'core/services/model_library_service.dart';
 import 'core/services/settings_controller.dart';
 
 Future<void> main() async {
@@ -67,14 +71,20 @@ Future<void> main() async {
 
   final prefs = await SharedPreferences.getInstance();
   final settingsController = SettingsController(prefs);
+  final modelLibrary = await ModelLibraryService.create(
+    prefs,
+    modelsDir: () async {
+      final docs = await getApplicationDocumentsDirectory();
+      return Directory(p.join(docs.path, 'models'));
+    },
+  );
   final detectionService = DetectionService();
-  await detectionService.initialize(settings: settingsController.settings);
+  await detectionService.initialize(model: modelLibrary.activeModel);
 
-  // Reload the model automatically whenever settings change (e.g. toggling
-  // custom model off should immediately clear the error and restore the
-  // built-in model without requiring the user to run a detection first).
-  settingsController.addListener(() {
-    detectionService.reloadIfNeeded(settingsController.settings);
+  // Swap the loaded model whenever the active model changes (import, delete,
+  // activate), so a bad or removed model never lingers until the next run.
+  modelLibrary.addListener(() {
+    detectionService.reloadIfNeeded(modelLibrary.activeModel);
   });
 
   // Marketplace services
@@ -82,8 +92,7 @@ Future<void> main() async {
   final marketplaceService = MarketplaceService(prefs);
   final downloadManager = DownloadManager(
     marketplaceService: marketplaceService,
-    settingsController: settingsController,
-    prefs: prefs,
+    library: modelLibrary,
   );
 
   // History
@@ -94,6 +103,9 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider<SettingsController>(
           create: (_) => settingsController,
+        ),
+        ChangeNotifierProvider<ModelLibraryService>(
+          create: (_) => modelLibrary,
         ),
         ChangeNotifierProvider<DetectionService>(
           create: (_) => detectionService,

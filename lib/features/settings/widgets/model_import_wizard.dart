@@ -3,11 +3,10 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 import '../../../core/l10n/l10n_extensions.dart';
+import '../../../core/services/model_library_service.dart';
 import '../../../core/services/model_validator.dart';
-import '../../../core/services/settings_controller.dart';
 import '../../../core/theme/app_colors.dart';
 
 /// A 4-step wizard (bottom sheet) that guides the user through importing a
@@ -17,13 +16,13 @@ import '../../../core/theme/app_colors.dart';
 ///   2 — Pick or skip label file
 ///   3 — Summary + activate
 class ModelImportWizard extends StatefulWidget {
-  const ModelImportWizard({super.key, required this.controller});
+  const ModelImportWizard({super.key, required this.library});
 
-  final SettingsController controller;
+  final ModelLibraryService library;
 
   /// Show the wizard as a modal bottom sheet and return `true` if a model was
   /// successfully imported.
-  static Future<bool?> show(BuildContext context, SettingsController controller) {
+  static Future<bool?> show(BuildContext context, ModelLibraryService library) {
     return showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
@@ -32,7 +31,7 @@ class ModelImportWizard extends StatefulWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => ModelImportWizard(controller: controller),
+      builder: (_) => ModelImportWizard(library: library),
     );
   }
 
@@ -593,42 +592,36 @@ class _ModelImportWizardState extends State<ModelImportWizard> {
   }
 
   Future<void> _activateModel() async {
-    final appDir = await getApplicationDocumentsDirectory();
-    final modelsDir = Directory(p.join(appDir.path, 'custom_models'));
-    if (!await modelsDir.exists()) {
-      await modelsDir.create(recursive: true);
-    }
+    final library = widget.library;
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final successText = context.l10n.wizardImportSuccess;
 
-    // Copy model file.
-    final modelFileName = p.basename(_pickedModelPath!);
-    final destModelPath = p.join(modelsDir.path, modelFileName);
-    await File(_pickedModelPath!).copy(destModelPath);
-
-    // Copy labels file if provided.
-    String? destLabelsPath;
+    List<String>? labels;
     if (_pickedLabelsPath != null && !_useCocoLabels) {
-      final labelsFileName = p.basename(_pickedLabelsPath!);
-      destLabelsPath = p.join(modelsDir.path, labelsFileName);
-      await File(_pickedLabelsPath!).copy(destLabelsPath);
+      labels = (await File(_pickedLabelsPath!).readAsString())
+          .split('\n')
+          .map((line) => line.trim())
+          .where((line) => line.isNotEmpty)
+          .toList();
     }
 
-    final ctrl = widget.controller;
-    ctrl.updateCustomModelPath(destModelPath);
-    ctrl.updateCustomLabelsPath(destLabelsPath);
-    ctrl.updateCustomModelMetadata(
-      name: modelFileName,
-      inputWidth: _modelResult!.inputWidth!,
-      inputHeight: _modelResult!.inputHeight!,
-      classCount: _modelResult!.classCount!,
-      quantType: _modelResult!.inputType!,
-    );
-    ctrl.updateUseCustomModel(true);
+    try {
+      final model = await library.installFile(
+        sourcePath: _pickedModelPath!,
+        name: p.basenameWithoutExtension(_pickedModelPath!),
+        validation: _modelResult!,
+        labels: labels,
+        usesCocoLabels: _useCocoLabels,
+      );
+      await library.activate(model.id);
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      return;
+    }
 
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.wizardImportSuccess)),
-    );
-    Navigator.of(context).pop(true);
+    messenger.showSnackBar(SnackBar(content: Text(successText)));
+    navigator.pop(true);
   }
 }
 

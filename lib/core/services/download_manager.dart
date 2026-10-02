@@ -1,38 +1,70 @@
 import 'dart:io';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../models/download_state.dart';
+import '../models/installed_model.dart';
 import '../models/marketplace_model.dart';
-import '../services/marketplace_service.dart';
-import '../services/model_validator.dart';
-import '../services/settings_controller.dart';
+import 'model_library_service.dart';
+import 'model_validator.dart';
 
-/// Manages model file downloads with progress tracking and validation.
+/// Fetches [url] into [savePath], reporting progress as `received, total`.
+typedef FileDownloader = Future<void> Function(
+  String url,
+  String savePath, {
+  CancelToken? cancelToken,
+  void Function(int received, int total)? onProgress,
+});
+
+/// What [DownloadManager] needs from the marketplace backend once a download
+/// has succeeded. Implemented by `MarketplaceService`.
+abstract interface class DownloadRecorder {
+  Future<String?> recordDownload(String modelId, String version);
+  void markAsDownloaded(String modelId);
+}
+
+/// Downloads model files, validates them and installs them into the
+/// [ModelLibraryService]. Progress and failures are tracked per key: the
+/// marketplace model id, or the URL for direct imports.
 class DownloadManager extends ChangeNotifier {
   DownloadManager({
     required this.marketplaceService,
-    required this.settingsController,
-    required SharedPreferences prefs,
-  }) : _prefs = prefs {
-    _dio = Dio(BaseOptions(
-      connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(minutes: 10),
-    ));
-    _loadDownloadedModels();
+    required this.library,
+    FileDownloader? downloader,
+    Future<ModelValidationResult> Function(String path)? validator,
+    Future<Directory> Function()? tempDir,
+  })  : _validate = validator ?? ModelValidator.validate,
+        _tempDir = tempDir ?? getTemporaryDirectory {
+    if (downloader != null) {
+      _download = downloader;
+    } else {
+      final dio = Dio(BaseOptions(
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(minutes: 10),
+      ));
+      _dio = dio;
+      _download = (url, savePath, {cancelToken, onProgress}) async {
+        await dio.download(
+          url,
+          savePath,
+          cancelToken: cancelToken,
+          onReceiveProgress: onProgress,
+        );
+      };
+    }
+    library.addListener(notifyListeners);
   }
 
-  final MarketplaceService marketplaceService;
-  final SettingsController settingsController;
-  final SharedPreferences _prefs;
-  late final Dio _dio;
-
-  static const String _downloadedModelsKey = 'downloaded_models_metadata';
+  final DownloadRecorder marketplaceService;
+  final ModelLibraryService library;
+  final Future<ModelValidationResult> Function(String path) _validate;
+  final Future<Directory> Function() _tempDir;
+  late final FileDownloader _download;
+  Dio? _dio;
 
   // ─── State ──────────────────────────────────────────────────
   final Map<String, DownloadState> _downloads = {};
@@ -40,304 +72,208 @@ class DownloadManager extends ChangeNotifier {
 
   final Map<String, CancelToken> _cancelTokens = {};
 
-  /// Metadata of downloaded models (persisted).
-  final Map<String, DownloadedModelMeta> _downloadedModels = {};
+  DownloadState? getDownloadState(String key) => _downloads[key];
 
-  DownloadState? getDownloadState(String modelId) => _downloads[modelId];
+  /// Marketplace models installed on this device.
+  List<InstalledModel> get downloadedModels => library.models
+      .where((m) => m.origin == InstalledModelOrigin.marketplace)
+      .toList();
 
-  bool isDownloaded(String modelId) => _downloadedModels.containsKey(modelId);
+  bool isDownloaded(String marketplaceModelId) =>
+      library.byMarketplaceId(marketplaceModelId) != null;
 
-  String? getLocalPath(String modelId) => _downloadedModels[modelId]?.localPath;
+  String? getLocalPath(String marketplaceModelId) =>
+      library.byMarketplaceId(marketplaceModelId)?.filePath;
 
-  List<DownloadedModelMeta> get downloadedModels =>
-      _downloadedModels.values.toList();
+  // ─── Marketplace download ──────────────────────────────────
 
-  // ─── Download ──────────────────────────────────────────────
-
-  /// Download a model file. Shows Wi-Fi warning for large files.
+  /// Download a marketplace model. Shows Wi-Fi warning for large files.
   Future<void> downloadModel(
     MarketplaceModel model, {
     VoidCallback? onWifiWarning,
   }) async {
-    // Check file size and connection
     if (model.isLargeFile) {
       final connectivity = await Connectivity().checkConnectivity();
-      final hasWifi =
-          connectivity.any((r) => r == ConnectivityResult.wifi);
+      final hasWifi = connectivity.any((r) => r == ConnectivityResult.wifi);
       if (!hasWifi && onWifiWarning != null) {
         onWifiWarning();
         return;
       }
     }
 
-    // Check if already downloading
-    if (_downloads[model.id]?.isDownloading == true) return;
+    final installed = await _downloadAndInstall(
+      key: model.id,
+      url: model.fileUrl,
+      name: model.name,
+      origin: InstalledModelOrigin.marketplace,
+      marketplaceModelId: model.id,
+      version: model.version,
+    );
+
+    // Count the download only once it actually succeeded.
+    if (installed != null) {
+      await marketplaceService.recordDownload(model.id, model.version);
+      marketplaceService.markAsDownloaded(model.id);
+    }
+  }
+
+  // ─── Direct URL import ─────────────────────────────────────
+
+  /// Download a `.tflite` from [url] into the library. Returns the installed
+  /// model, or null on failure (see [getDownloadState] with the URL as key).
+  Future<InstalledModel?> importFromUrl(String url, {String? name}) {
+    final uri = Uri.tryParse(url);
+    final fileName = uri != null && uri.pathSegments.isNotEmpty
+        ? uri.pathSegments.last
+        : 'model.tflite';
+    return _downloadAndInstall(
+      key: url,
+      url: url,
+      name: name ?? p.basenameWithoutExtension(fileName),
+      origin: InstalledModelOrigin.url,
+      sourceUrl: url,
+    );
+  }
+
+  Future<InstalledModel?> _downloadAndInstall({
+    required String key,
+    required String url,
+    required String name,
+    required InstalledModelOrigin origin,
+    String? marketplaceModelId,
+    String? version,
+    String? sourceUrl,
+  }) async {
+    if (_downloads[key]?.isDownloading == true) return null;
 
     final cancelToken = CancelToken();
-    _cancelTokens[model.id] = cancelToken;
-
-    _downloads[model.id] = DownloadState(
-      modelId: model.id,
+    _cancelTokens[key] = cancelToken;
+    _downloads[key] = DownloadState(
+      modelId: key,
       status: DownloadStatus.downloading,
     );
     notifyListeners();
 
+    File? temp;
     try {
-      // Record download on server
-      await marketplaceService.recordDownload(model.id, model.version);
-      marketplaceService.markAsDownloaded(model.id);
+      final dir = await _tempDir();
+      await dir.create(recursive: true);
+      temp = File(p.join(
+        dir.path,
+        'download_${DateTime.now().microsecondsSinceEpoch}.tflite',
+      ));
 
-      // Get destination path
-      final appDir = await getApplicationDocumentsDirectory();
-      final modelsDir =
-          Directory(p.join(appDir.path, 'marketplace_models'));
-      if (!await modelsDir.exists()) {
-        await modelsDir.create(recursive: true);
-      }
-
-      final fileName =
-          '${model.slug}_v${model.version}.tflite';
-      final destPath = p.join(modelsDir.path, fileName);
-
-      // Download file
-      await _dio.download(
-        model.fileUrl,
-        destPath,
+      await _download(
+        url,
+        temp.path,
         cancelToken: cancelToken,
-        onReceiveProgress: (received, total) {
-          final progress = total > 0 ? received / total : 0.0;
-          _downloads[model.id] = _downloads[model.id]!.copyWith(
-            progress: progress,
+        onProgress: (received, total) {
+          final current = _downloads[key];
+          if (current == null) return;
+          _downloads[key] = current.copyWith(
+            progress: total > 0 ? received / total : 0.0,
           );
           notifyListeners();
         },
       );
 
-      // Validate downloaded file
-      _downloads[model.id] = _downloads[model.id]!.copyWith(
+      _downloads[key] = _downloads[key]!.copyWith(
         status: DownloadStatus.validating,
       );
       notifyListeners();
 
-      final validationResult = await ModelValidator.validate(destPath);
-      if (!validationResult.isValid) {
-        // Delete invalid file
-        final file = File(destPath);
-        if (await file.exists()) await file.delete();
-
-        _downloads[model.id] = _downloads[model.id]!.copyWith(
+      final validation = await _validate(temp.path);
+      if (!validation.isValid) {
+        _downloads[key] = _downloads[key]!.copyWith(
           status: DownloadStatus.failed,
-          error: 'Model validation failed: ${validationResult.errorCode?.name}',
+          error: 'Model validation failed: ${validation.errorCode?.name}',
         );
         notifyListeners();
-        return;
+        return null;
       }
 
-      // Save metadata
-      final meta = DownloadedModelMeta(
-        modelId: model.id,
-        name: model.name,
-        version: model.version,
-        localPath: destPath,
-        fileSizeBytes: model.fileSizeBytes,
-        downloadedAt: DateTime.now(),
-        inputWidth: validationResult.inputWidth!,
-        inputHeight: validationResult.inputHeight!,
-        classCount: validationResult.classCount!,
-        quantType: validationResult.inputType!,
+      final installed = await library.installFile(
+        sourcePath: temp.path,
+        name: name,
+        validation: validation,
+        // Downloads carry no label file: assume COCO only for 80-class models,
+        // otherwise fall back to generic class_N names rather than mislabel.
+        usesCocoLabels: validation.classCount == 80,
+        origin: origin,
+        sourceUrl: sourceUrl,
+        marketplaceModelId: marketplaceModelId,
+        version: version,
       );
 
-      _downloadedModels[model.id] = meta;
-      _saveDownloadedModels();
-
-      _downloads[model.id] = DownloadState(
-        modelId: model.id,
+      _downloads[key] = DownloadState(
+        modelId: key,
         status: DownloadStatus.completed,
         progress: 1.0,
-        localPath: destPath,
+        localPath: installed.filePath,
       );
       notifyListeners();
+      return installed;
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) {
-        _downloads.remove(model.id);
+        _downloads.remove(key);
       } else {
-        _downloads[model.id] = _downloads[model.id]!.copyWith(
+        _downloads[key] = (_downloads[key] ??
+                DownloadState(modelId: key, status: DownloadStatus.failed))
+            .copyWith(
           status: DownloadStatus.failed,
           error: e.message ?? 'Download failed',
         );
       }
       notifyListeners();
+      return null;
     } catch (e) {
-      _downloads[model.id] = _downloads[model.id]?.copyWith(
-            status: DownloadStatus.failed,
-            error: e.toString(),
-          ) ??
-          DownloadState(
-            modelId: model.id,
-            status: DownloadStatus.failed,
-            error: e.toString(),
-          );
+      _downloads[key] = (_downloads[key] ??
+              DownloadState(modelId: key, status: DownloadStatus.failed))
+          .copyWith(status: DownloadStatus.failed, error: e.toString());
       notifyListeners();
+      return null;
     } finally {
-      _cancelTokens.remove(model.id);
+      _cancelTokens.remove(key);
+      try {
+        if (temp != null && await temp.exists()) await temp.delete();
+      } catch (_) {}
     }
   }
 
   /// Cancel an active download.
-  void cancelDownload(String modelId) {
-    _cancelTokens[modelId]?.cancel();
-    _cancelTokens.remove(modelId);
-    _downloads.remove(modelId);
+  void cancelDownload(String key) {
+    _cancelTokens[key]?.cancel();
+    _cancelTokens.remove(key);
+    _downloads.remove(key);
     notifyListeners();
   }
 
-  // ─── Activate model ────────────────────────────────────────
+  // ─── Library actions for marketplace models ────────────────
 
-  /// Activate a downloaded marketplace model for use in detection.
-  /// Uses the same SettingsController API as the import wizard.
-  void activateModel(String modelId) {
-    final meta = _downloadedModels[modelId];
-    if (meta == null) return;
-
-    settingsController.updateCustomModelPath(meta.localPath);
-    settingsController.updateCustomLabelsPath(null); // Use COCO defaults
-    settingsController.updateCustomModelMetadata(
-      name: meta.name,
-      inputWidth: meta.inputWidth,
-      inputHeight: meta.inputHeight,
-      classCount: meta.classCount,
-      quantType: meta.quantType,
-    );
-    settingsController.updateUseCustomModel(true);
+  /// Make a downloaded marketplace model the active one.
+  Future<void> activateModel(String marketplaceModelId) async {
+    final model = library.byMarketplaceId(marketplaceModelId);
+    if (model == null) return;
+    await library.activate(model.id);
   }
 
-  // ─── Delete downloaded model ───────────────────────────────
-
-  /// Delete a downloaded model file from the device.
-  Future<void> deleteDownloadedModel(String modelId) async {
-    final meta = _downloadedModels[modelId];
-    if (meta != null) {
-      final file = File(meta.localPath);
-      if (await file.exists()) {
-        await file.delete();
-      }
-      _downloadedModels.remove(modelId);
-      _downloads.remove(modelId);
-      _saveDownloadedModels();
-      notifyListeners();
+  /// Delete a downloaded marketplace model from the device.
+  Future<void> deleteDownloadedModel(String marketplaceModelId) async {
+    final model = library.byMarketplaceId(marketplaceModelId);
+    if (model != null) {
+      await library.remove(model.id);
     }
-  }
-
-  // ─── Persistence ───────────────────────────────────────────
-
-  void _saveDownloadedModels() {
-    final entries = _downloadedModels.values.map((m) => m.toJson()).toList();
-    _prefs.setString(
-      _downloadedModelsKey,
-      entries.map((e) => _encodeJson(e)).join('|||'),
-    );
-  }
-
-  void _loadDownloadedModels() {
-    final raw = _prefs.getString(_downloadedModelsKey);
-    if (raw == null || raw.isEmpty) return;
-
-    for (final part in raw.split('|||')) {
-      try {
-        final json = _decodeJson(part);
-        final meta = DownloadedModelMeta.fromJson(json);
-        _downloadedModels[meta.modelId] = meta;
-        // Also set completed download state
-        _downloads[meta.modelId] = DownloadState(
-          modelId: meta.modelId,
-          status: DownloadStatus.completed,
-          progress: 1.0,
-          localPath: meta.localPath,
-        );
-      } catch (_) {
-        // Skip corrupted entries
-      }
-    }
-  }
-
-  String _encodeJson(Map<String, dynamic> json) {
-    // Simple encoding: key=value pairs separated by ';'
-    return json.entries.map((e) => '${e.key}=${e.value}').join(';');
-  }
-
-  Map<String, dynamic> _decodeJson(String encoded) {
-    final map = <String, dynamic>{};
-    for (final pair in encoded.split(';')) {
-      final idx = pair.indexOf('=');
-      if (idx > 0) {
-        map[pair.substring(0, idx)] = pair.substring(idx + 1);
-      }
-    }
-    return map;
+    _downloads.remove(marketplaceModelId);
+    notifyListeners();
   }
 
   @override
   void dispose() {
+    library.removeListener(notifyListeners);
     for (final token in _cancelTokens.values) {
       token.cancel();
     }
-    _dio.close();
+    _dio?.close();
     super.dispose();
-  }
-}
-
-/// Metadata about a downloaded model, persisted locally.
-class DownloadedModelMeta {
-  const DownloadedModelMeta({
-    required this.modelId,
-    required this.name,
-    required this.version,
-    required this.localPath,
-    required this.fileSizeBytes,
-    required this.downloadedAt,
-    required this.inputWidth,
-    required this.inputHeight,
-    required this.classCount,
-    required this.quantType,
-  });
-
-  final String modelId;
-  final String name;
-  final String version;
-  final String localPath;
-  final int fileSizeBytes;
-  final DateTime downloadedAt;
-  final int inputWidth;
-  final int inputHeight;
-  final int classCount;
-  final String quantType;
-
-  Map<String, dynamic> toJson() => {
-        'modelId': modelId,
-        'name': name,
-        'version': version,
-        'localPath': localPath,
-        'fileSizeBytes': fileSizeBytes,
-        'downloadedAt': downloadedAt.toIso8601String(),
-        'inputWidth': inputWidth,
-        'inputHeight': inputHeight,
-        'classCount': classCount,
-        'quantType': quantType,
-      };
-
-  factory DownloadedModelMeta.fromJson(Map<String, dynamic> json) {
-    return DownloadedModelMeta(
-      modelId: json['modelId'] as String,
-      name: json['name'] as String,
-      version: json['version'] as String,
-      localPath: json['localPath'] as String,
-      fileSizeBytes: int.tryParse(json['fileSizeBytes'].toString()) ?? 0,
-      downloadedAt: DateTime.tryParse(json['downloadedAt'].toString()) ??
-          DateTime.now(),
-      inputWidth: int.tryParse(json['inputWidth'].toString()) ?? 0,
-      inputHeight: int.tryParse(json['inputHeight'].toString()) ?? 0,
-      classCount: int.tryParse(json['classCount'].toString()) ?? 0,
-      quantType: json['quantType'] as String? ?? 'FLOAT32',
-    );
   }
 }

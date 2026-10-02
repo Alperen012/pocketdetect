@@ -9,8 +9,8 @@ import '../detection/interpreter_factory.dart';
 import '../detection/letterbox.dart';
 import '../detection/nms.dart';
 import '../detection/yolo_decoder.dart';
-import '../models/app_settings.dart';
 import '../models/detected_object.dart';
+import '../models/installed_model.dart';
 import '../models/resolution_profile.dart';
 
 // ---------------------------------------------------------------------------
@@ -83,12 +83,10 @@ class DetectionService extends ChangeNotifier {
   Interpreter? _interpreter;
   List<String> _labels = <String>[];
   String? _error;
-  String? _activeModelPath;
-  String? _activeLabelsPath;
-  bool _usingCustomModel = false;
+  InstalledModel? _activeModel;
   int _lastInferenceMs = 0;
   bool _isLoading = false;
-  AppSettings? _pendingSettings;
+  InstalledModel? _pendingModel;
 
   DelegateKind? _activeDelegate;
   Map<DelegateKind, Object> _delegateFailures = const <DelegateKind, Object>{};
@@ -105,27 +103,29 @@ class DetectionService extends ChangeNotifier {
   /// Wall-clock time of the last `interpreter.run()` call in milliseconds.
   int get lastInferenceMs => _lastInferenceMs;
 
-  Future<void> initialize({required AppSettings settings}) async {
-    await _loadFromSettings(settings, force: true);
+  /// The model currently loaded (or last attempted).
+  InstalledModel? get activeModel => _activeModel;
+
+  Future<void> initialize({required InstalledModel model}) async {
+    await _loadModel(model);
   }
 
-  Future<void> reloadIfNeeded(AppSettings settings) async {
-    // If a load is in progress, save these settings so they can be applied
+  /// Loads [model] unless it is already the loaded one.
+  Future<void> reloadIfNeeded(InstalledModel model) async {
+    // If a load is in progress, remember the request so it can be applied
     // once the current load completes.
     if (_isLoading) {
-      _pendingSettings = settings;
+      _pendingModel = model;
       return;
     }
-    final modelPath = settings.useCustomModel ? settings.customModelPath : null;
-    final labelsPath = settings.useCustomModel ? settings.customLabelsPath : null;
-    final shouldReload = _usingCustomModel != settings.useCustomModel ||
-        _activeModelPath != modelPath ||
-        _activeLabelsPath != labelsPath ||
-        !isReady;
-    if (!shouldReload) {
+    final active = _activeModel;
+    final sameModel = active != null &&
+        active.id == model.id &&
+        active.filePath == model.filePath;
+    if (sameModel && isReady) {
       return;
     }
-    await _loadFromSettings(settings, force: true);
+    await _loadModel(model);
   }
 
   /// Runs detection on an image file.
@@ -339,39 +339,26 @@ class DetectionService extends ChangeNotifier {
     return nonMaxSuppression(detections, iouThreshold, maxDetections);
   }
 
-  Future<void> _loadFromSettings(AppSettings settings, {required bool force}) async {
+  Future<void> _loadModel(InstalledModel model) async {
     if (_isLoading) {
       return;
     }
     _isLoading = true;
     try {
-      if (!force && isReady) {
-        return;
-      }
-
       _interpreter?.close();
       _interpreter = null;
+      _activeModel = model;
 
-      final useCustom = settings.useCustomModel;
-      final modelPath = settings.customModelPath;
-      final labelsPath = settings.customLabelsPath;
-
-      if (useCustom && (modelPath == null || modelPath.isEmpty)) {
-        throw StateError('Custom model enabled but no .tflite file selected.');
-      }
-
-      _labels = await _loadLabels(labelsPath, useCustom);
-      final freshInterpreter = await _createInterpreter(modelPath, useCustom);
+      _labels = await _loadLabels(model);
+      final freshInterpreter = await _createInterpreter(model);
       _interpreter = freshInterpreter;
       _validateModelCompatibility(
         freshInterpreter,
         labels: _labels,
-        hasCustomLabels: useCustom && labelsPath != null && labelsPath.isNotEmpty,
+        // Bundled COCO names are trusted; explicit lists must match the model.
+        checkLabelCount: model.labels.isNotEmpty,
       );
       _error = null;
-      _usingCustomModel = useCustom;
-      _activeModelPath = useCustom ? modelPath : null;
-      _activeLabelsPath = useCustom ? labelsPath : null;
       notifyListeners();
     } catch (err) {
       _error = 'Failed to load model: $err';
@@ -379,10 +366,10 @@ class DetectionService extends ChangeNotifier {
       notifyListeners();
     } finally {
       _isLoading = false;
-      // If settings changed while we were loading, apply them now.
-      final pending = _pendingSettings;
+      // If another model was requested while loading, apply it now.
+      final pending = _pendingModel;
       if (pending != null) {
-        _pendingSettings = null;
+        _pendingModel = null;
         await reloadIfNeeded(pending);
       }
     }
@@ -391,7 +378,7 @@ class DetectionService extends ChangeNotifier {
   void _validateModelCompatibility(
     Interpreter interpreter, {
     required List<String> labels,
-    required bool hasCustomLabels,
+    required bool checkLabelCount,
   }) {
     final input = interpreter.getInputTensor(0);
     final output = interpreter.getOutputTensor(0);
@@ -422,7 +409,7 @@ class DetectionService extends ChangeNotifier {
       );
     }
 
-    if (hasCustomLabels) {
+    if (checkLabelCount) {
       final classCount = outputShape[1] - 4;
       if (labels.length != classCount) {
         throw StateError(
@@ -432,15 +419,9 @@ class DetectionService extends ChangeNotifier {
     }
   }
 
-  Future<List<String>> _loadLabels(String? labelsPath, bool useCustom) async {
-    if (useCustom && labelsPath != null && labelsPath.isNotEmpty) {
-      final file = File(labelsPath);
-      final raw = await file.readAsString();
-      return raw
-          .split('\n')
-          .map((line) => line.trim())
-          .where((line) => line.isNotEmpty)
-          .toList();
+  Future<List<String>> _loadLabels(InstalledModel model) async {
+    if (model.labels.isNotEmpty) {
+      return List<String>.of(model.labels);
     }
 
     final raw = await rootBundle.loadString('assets/labels/coco.txt');
@@ -451,12 +432,11 @@ class DetectionService extends ChangeNotifier {
         .toList();
   }
 
-  Future<Interpreter> _createInterpreter(String? modelPath, bool useCustom) async {
-    const modelAssetPath = 'assets/models/yolo26n_int8.tflite';
-
-    final source = useCustom && modelPath != null && modelPath.isNotEmpty
-        ? ModelSource.file(modelPath)
-        : const ModelSource.asset(modelAssetPath);
+  Future<Interpreter> _createInterpreter(InstalledModel model) async {
+    final filePath = model.filePath;
+    final source = filePath != null
+        ? ModelSource.file(filePath)
+        : ModelSource.asset(model.assetPath!);
 
     final result = await createInterpreter(source);
     _activeDelegate = result.delegate;

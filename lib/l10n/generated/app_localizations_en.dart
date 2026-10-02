@@ -969,4 +969,68 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get batchStartProcessing => 'Run Detection';
+
+  @override
+  String get modelsTitle => 'Models';
+
+  @override
+  String get modelActive => 'Active';
+
+  @override
+  String get modelUse => 'Use this model';
+
+  @override
+  String get modelBuiltIn => 'Built-in';
+
+  @override
+  String get modelDelete => 'Delete';
+
+  @override
+  String modelDeleteConfirm(String name) {
+    return 'Delete \"$name\" from this device?';
+  }
+
+  @override
+  String get modelDeleted => 'Model deleted.';
+
+  @override
+  String get modelImportFromFile => 'Import from file';
+
+  @override
+  String get modelImportFromUrl => 'Import from URL';
+
+  @override
+  String get modelUrlDialogTitle => 'Download a model';
+
+  @override
+  String get modelUrlHint => 'https://example.com/model.tflite';
+
+  @override
+  String get modelUrlInvalid => 'Enter a valid http(s) link.';
+
+  @override
+  String get modelDownload => 'Download';
+
+  @override
+  String get modelDownloading => 'Downloading…';
+
+  @override
+  String get modelValidating => 'Checking model…';
+
+  @override
+  String modelDownloadFailed(String error) {
+    return 'Download failed: $error';
+  }
+
+  @override
+  String get modelLoadFailed => 'The active model could not be loaded.';
+
+  @override
+  String get modelSourceFile => 'Imported file';
+
+  @override
+  String get modelSourceUrl => 'Downloaded from a link';
+
+  @override
+  String get modelSourceMarketplace => 'Marketplace';
 }

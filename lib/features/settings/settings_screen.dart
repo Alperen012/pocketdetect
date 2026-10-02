@@ -6,7 +6,8 @@ import '../../core/l10n/l10n_extensions.dart';
 import '../../core/models/resolution_profile.dart';
 import '../../core/services/settings_controller.dart';
 import '../../core/theme/app_colors.dart';
-import 'widgets/model_import_wizard.dart';
+import '../../core/services/model_library_service.dart';
+import '../models/models_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -27,55 +28,7 @@ class SettingsScreen extends StatelessWidget {
             Text(l10n.sectionModelArchitecture,
                 style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
             const SizedBox(height: 12),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(l10n.activeModel, style: const TextStyle(fontSize: 16)),
-                    const SizedBox(height: 8),
-                    DropdownButtonFormField<String>(
-                      initialValue: settings.modelId,
-                      items: <DropdownMenuItem<String>>[
-                        DropdownMenuItem(
-                          value: 'yolo26_nano',
-                          child: Text(l10n.yoloNanoInt8),
-                        ),
-                      ],
-                      onChanged: settings.useCustomModel
-                          ? null
-                          : (value) {
-                              if (value != null) {
-                                controller.updateModelId(value);
-                              }
-                            },
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      l10n.nanoModelDescription,
-                      style: const TextStyle(color: AppColors.textSecondary),
-                    ),
-                    if (settings.useCustomModel)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Text(
-                          l10n.customModelActiveWarning,
-                          style: const TextStyle(color: AppColors.warning),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(l10n.sectionCustomModel,
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-            const SizedBox(height: 12),
-            if (settings.useCustomModel && settings.customModelPath != null)
-              _ActiveCustomModelCard(controller: controller)
-            else
-              _ImportModelCard(controller: controller),
+            const _ActiveModelCard(),
             const SizedBox(height: 24),
             Text(l10n.sectionDetectionThresholds,
                 style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
@@ -202,254 +155,26 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-class _ActiveCustomModelCard extends StatelessWidget {
-  const _ActiveCustomModelCard({required this.controller});
-
-  final SettingsController controller;
+/// Shows the active model and opens the model library.
+class _ActiveModelCard extends StatelessWidget {
+  const _ActiveModelCard();
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final settings = controller.settings;
+    final model = context.watch<ModelLibraryService>().activeModel;
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.check_circle,
-                      color: Colors.green, size: 22),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    l10n.wizardActiveModelInfo,
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            if (settings.customModelName != null)
-              _ModelInfoRow(
-                icon: Icons.file_present_outlined,
-                label: l10n.wizardSummaryModel,
-                value: settings.customModelName!,
-              ),
-            if (settings.customModelInputWidth != null &&
-                settings.customModelInputHeight != null)
-              _ModelInfoRow(
-                icon: Icons.aspect_ratio,
-                label: l10n.wizardSummaryInputSize,
-                value: l10n.customModelInputSize(
-                  settings.customModelInputWidth!,
-                  settings.customModelInputHeight!,
-                ),
-              ),
-            if (settings.customModelClassCount != null)
-              _ModelInfoRow(
-                icon: Icons.category_outlined,
-                label: l10n.wizardSummaryClassCount,
-                value: l10n.customModelClassCount(
-                  settings.customModelClassCount!,
-                ),
-              ),
-            if (settings.customModelQuantType != null)
-              _ModelInfoRow(
-                icon: Icons.memory,
-                label: l10n.wizardSummaryQuantization,
-                value: settings.customModelQuantType!,
-              ),
-            _ModelInfoRow(
-              icon: Icons.label_outline,
-              label: l10n.wizardSummaryLabelSource,
-              value: settings.customLabelsPath != null
-                  ? l10n.wizardLabelSourceCustom
-                  : l10n.wizardLabelSourceCoco,
-            ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      ModelImportWizard.show(context, controller);
-                    },
-                    icon: const Icon(Icons.swap_horiz, size: 18),
-                    label: Text(l10n.wizardChangeModel),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _confirmRemove(context),
-                    icon: Icon(Icons.delete_outline,
-                        size: 18, color: Colors.red.shade400),
-                    label: Text(
-                      l10n.wizardRemoveModel,
-                      style: TextStyle(color: Colors.red.shade400),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.red.shade700),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
+      child: ListTile(
+        leading: const Icon(Icons.memory, color: AppColors.accent),
+        title: Text(model.name),
+        subtitle: Text(
+          '${model.inputWidth}×${model.inputHeight} · '
+          '${l10n.customModelClassCount(model.classCount)} · ${model.quantType}',
         ),
-      ),
-    );
-  }
-
-  void _confirmRemove(BuildContext context) {
-    final l10n = context.l10n;
-    showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.wizardRemoveModel),
-        content: Text(l10n.wizardRemoveConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l10n.wizardRemove,
-                style: const TextStyle(color: Colors.redAccent)),
-          ),
-        ],
-      ),
-    ).then((confirmed) {
-      if (confirmed == true) {
-        controller.updateCustomModelPath(null);
-        controller.updateCustomLabelsPath(null);
-        controller.updateUseCustomModel(false);
-        controller.clearCustomModelMetadata();
-        if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.customModelCleared)),
-        );
-      }
-    });
-  }
-}
-
-class _ImportModelCard extends StatelessWidget {
-  const _ImportModelCard({required this.controller});
-
-  final SettingsController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.add_circle_outline,
-                      color: AppColors.accent, size: 22),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.wizardImportNewModel,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w700),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        l10n.wizardImportNewModelDesc,
-                        style: const TextStyle(
-                            color: AppColors.textSecondary, fontSize: 13),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            Text(
-              l10n.wizardNoCustomModel,
-              style: const TextStyle(
-                  color: AppColors.textSecondary, fontSize: 13, height: 1.4),
-            ),
-            const SizedBox(height: 14),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  ModelImportWizard.show(context, controller);
-                },
-                icon: const Icon(Icons.upload_file),
-                label: Text(l10n.wizardImportNewModel),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-              ),
-            ),
-          ],
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const ModelsScreen()),
         ),
-      ),
-    );
-  }
-}
-
-class _ModelInfoRow extends StatelessWidget {
-  const _ModelInfoRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: AppColors.textSecondary),
-          const SizedBox(width: 8),
-          Text(
-            '$label: ',
-            style: const TextStyle(
-                color: AppColors.textSecondary, fontSize: 13),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
       ),
     );
   }

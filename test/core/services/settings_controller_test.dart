@@ -18,12 +18,10 @@ void main() {
     test('initial settings match AppSettings.defaults', () {
       final s = controller.settings;
 
-      expect(s.modelId, 'yolo26_nano');
       expect(s.confidenceThreshold, 0.5);
       expect(s.iouThreshold, 0.45);
       expect(s.useNms, true);
       expect(s.maxDetections, 100);
-      expect(s.useCustomModel, false);
     });
 
     test('updateConfidence() changes threshold and notifies', () {
@@ -87,30 +85,6 @@ void main() {
 
       final reloaded = SettingsController(prefs);
       expect(reloaded.selectedLabels, isEmpty);
-    });
-
-    test('updateCustomModelPath() sets path', () {
-      controller.updateCustomModelPath('/path/to/model.tflite');
-      expect(
-          controller.settings.customModelPath, '/path/to/model.tflite');
-    });
-
-    test('clearCustomModelMetadata() nulls out all custom fields', () {
-      controller.updateCustomModelMetadata(
-        name: 'Custom',
-        inputWidth: 640,
-        inputHeight: 640,
-        classCount: 80,
-        quantType: 'int8',
-      );
-      expect(controller.settings.customModelName, 'Custom');
-
-      controller.clearCustomModelMetadata();
-      expect(controller.settings.customModelName, isNull);
-      expect(controller.settings.customModelInputWidth, isNull);
-      expect(controller.settings.customModelInputHeight, isNull);
-      expect(controller.settings.customModelClassCount, isNull);
-      expect(controller.settings.customModelQuantType, isNull);
     });
 
     test('resetToDefaults() restores everything', () {
