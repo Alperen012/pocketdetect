@@ -51,18 +51,21 @@ There is no DI framework. `lib/main.dart` constructs every service by hand and e
 
 ### Detection pipeline (`lib/core/services/detection_service.dart`)
 
-1. Pre-downscale the image so its longest side is at most `ResolutionProfile.size`. The profile is only a cap; the real input size comes from the model's input tensor.
-2. Letterbox to the model's square input with gray (114) padding.
+1. Pre-downscale the image so its longest side is at most `ResolutionProfile.size` (`capLongestSide`). The profile is only a cap; the real input size comes from the model's input tensor.
+2. Letterbox to the model's square input with gray (114) padding (`LetterboxParams`).
 3. Build the input tensor in a `compute()` isolate, quantizing when the input is int8.
 4. Run `interpreter.run` on the main isolate, because the interpreter holds native resources.
-5. Dequantize the output, then decode and filter by confidence and selected labels in a second `compute()` isolate. Boxes are un-letterboxed into normalized `[0,1]` coordinates relative to the original image.
-6. Run NMS in Dart, unless disabled in settings.
+5. Dequantize the output, then decode and filter by confidence and selected labels in a second `compute()` isolate (`decodeYolo`). Boxes are un-letterboxed into normalized `[0,1]` coordinates relative to the original image.
+6. Run NMS (`nonMaxSuppression`), unless disabled in settings.
+
+The pure, unit-tested parts live in `lib/core/detection/`: `letterbox.dart`, `yolo_decoder.dart`, `nms.dart`, `camera_frame.dart` (YUV420/BGRA conversion and rotation for live frames) and `interpreter_factory.dart` (delegate order and fallback). `DetectionService` only orchestrates them.
 
 Things to know before changing it:
 
-- `detectObjects` (file input) and `detectFromImage` (live camera frames) each contain a full copy of this pipeline. A change to one must be made in the other.
+- `detectObjects` (file input) and `detectFromImage` (already-decoded image, used by live mode) are thin wrappers over a single private `_detect`. Put pipeline changes there.
+- Live camera frames are converted and rotated upright in an isolate before detection, so detections are normalized to the upright frame. The overlay is drawn inside the preview's own box (`CaptureScreen._buildPreview`) so it lines up. Front-camera mirroring and landscape orientation have not been verified on a device.
 - Supported model contract: input `[1, H, W, 3]` as int8 or float32; output `[1, 4 + classes, N]` as int8 or float32, with normalized `cx, cy, w, h` followed by class scores. This contract is checked in two places that must stay in sync: `DetectionService._validateModelCompatibility` and `ModelValidator.validate`.
-- Interpreter creation tries NNAPI, then the GPU delegate, then CPU, silently falling through on failure.
+- Interpreter creation tries NNAPI, then the GPU delegate, then CPU. `DetectionService.activeDelegate` and `delegateFailures` report what happened.
 - Top-level functions and message classes at the top of the file exist because `compute()` needs top-level entry points and sendable messages. `DetectedObject` is rebuilt on the main isolate after the decode step.
 
 ### Custom and marketplace models
@@ -72,7 +75,7 @@ Both paths end in the same `SettingsController` calls (`updateCustomModelPath`, 
 - Local import: `features/settings/widgets/model_import_wizard.dart`, validated with `ModelValidator`.
 - Marketplace: `DownloadManager` downloads with Dio into `<app documents>/marketplace_models/`, validates with `ModelValidator`, and `activateModel` applies it.
 
-Marketplace models are activated with a null labels path, so they use the bundled COCO labels and skip the label-count check. The selected-label filter only makes sense for COCO names, so callers pass `filterBySelectedLabels: !useCustomModel` to the detection methods (the results and batch screens do; the parameter defaults to `true`). The preferences screen's class selection is built from the hard-coded COCO groups in `core/models/category_group.dart`.
+Marketplace models are activated with a null labels path, so they use the bundled COCO labels and skip the label-count check. The selected-label filter only makes sense for COCO names, so every caller (results, batch, live) passes `filterBySelectedLabels: !useCustomModel` to the detection methods; the parameter defaults to `true`. The preferences screen's class selection is built from the hard-coded COCO groups in `core/models/category_group.dart`.
 
 ### Persistence
 
