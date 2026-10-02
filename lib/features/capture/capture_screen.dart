@@ -234,6 +234,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
         useNms: settings.useNms,
         maxDetections: settings.maxDetections,
         selectedLabels: sc.selectedLabels,
+        filterBySelectedLabels: !settings.useCustomModel,
       );
 
       // Update FPS counter

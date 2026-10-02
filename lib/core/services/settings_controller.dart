@@ -233,7 +233,9 @@ class SettingsController extends ChangeNotifier {
 
   Set<String> _loadSelectedLabels() {
     final stored = _prefs.getStringList(_keySelectedLabels);
-    if (stored == null || stored.isEmpty) {
+    // null means "never chosen" (default: everything); an empty list is a
+    // deliberate "nothing selected" and must survive a restart.
+    if (stored == null) {
       return _allLabels.toSet();
     }
     return stored.toSet();

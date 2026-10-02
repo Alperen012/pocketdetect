@@ -116,8 +116,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
       if (!mounted || detections.isEmpty) return;
       final historyService = context.read<DetectionHistoryService>();
       final modelName = settings.settings.useCustomModel
-          ? 'Custom'
-          : 'YOLOv8n';
+          ? (settings.settings.customModelName ?? 'Custom')
+          : 'YOLO26n';
       historyService.addEntry(DetectionHistoryEntry(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         imagePath: widget.imageFile.path,

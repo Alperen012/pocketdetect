@@ -79,6 +79,16 @@ void main() {
       expect(controller.selectedLabels.length, initialCount);
     });
 
+    test('deselecting every label persists across reconstruction', () {
+      for (final label in controller.selectedLabels.toList()) {
+        controller.toggleLabel(label);
+      }
+      expect(controller.selectedLabels, isEmpty);
+
+      final reloaded = SettingsController(prefs);
+      expect(reloaded.selectedLabels, isEmpty);
+    });
+
     test('updateCustomModelPath() sets path', () {
       controller.updateCustomModelPath('/path/to/model.tflite');
       expect(
