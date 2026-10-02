@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/detection/camera_errors.dart';
 import '../../core/detection/camera_frame.dart';
 import '../../core/l10n/l10n_extensions.dart';
 import '../../core/models/detected_object.dart';
@@ -196,13 +197,16 @@ class _CaptureScreenState extends State<CaptureScreen> {
     controller.startImageStream(_onCameraFrame);
   }
 
-  void _stopLiveDetection() {
+  /// Stops the camera image stream and clears the live overlay. Pass
+  /// `updateUi: false` from [dispose], where calling `setState` is an error.
+  void _stopLiveDetection({bool updateUi = true}) {
     final controller = _cameraController;
     if (controller != null &&
         controller.value.isInitialized &&
         controller.value.isStreamingImages) {
       controller.stopImageStream();
     }
+    if (!updateUi) return;
     setState(() {
       _liveDetections = <DetectedObject>[];
       _fps = 0;
@@ -313,6 +317,42 @@ class _CaptureScreenState extends State<CaptureScreen> {
     };
   }
 
+  /// Shown when the camera could not start. A denied permission gets its own
+  /// message and a way forward (the gallery), since retrying cannot help.
+  Widget _buildCameraError(Object? error) {
+    final l10n = context.l10n;
+    final denied = isCameraPermissionError(error);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const Icon(
+              Icons.videocam_off_outlined,
+              size: 48,
+              color: AppColors.textSecondary,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              denied ? l10n.cameraPermissionDenied : l10n.cameraInitFailed,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.textSecondary),
+            ),
+            if (denied) ...<Widget>[
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: _pickFromGallery,
+                icon: const Icon(Icons.photo_library_outlined),
+                label: Text(l10n.pickFromGallery),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   /// Camera preview scaled to cover the available area without distortion,
   /// with the detection overlay drawn in the same coordinate space so boxes
   /// line up with what is visible.
@@ -347,7 +387,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
 
   @override
   void dispose() {
-    _stopLiveDetection();
+    _stopLiveDetection(updateUi: false);
     _cameraController?.dispose();
     super.dispose();
   }
@@ -389,27 +429,8 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                       if (snapshot.connectionState ==
                                           ConnectionState.done) {
                                         if (snapshot.hasError) {
-                                          return Center(
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: <Widget>[
-                                                const Icon(
-                                                  Icons.videocam_off_outlined,
-                                                  size: 48,
-                                                  color:
-                                                      AppColors.textSecondary,
-                                                ),
-                                                const SizedBox(height: 8),
-                                                Text(
-                                                  l10n.cameraInitFailed,
-                                                  style: const TextStyle(
-                                                    color:
-                                                        AppColors.textSecondary,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          );
+                                          return _buildCameraError(
+                                              snapshot.error);
                                         }
                                         return _buildPreview(
                                             _cameraController!);

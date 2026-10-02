@@ -13,6 +13,7 @@ class AppSettings {
     required this.useNms,
     required this.maxDetections,
     required this.lowMemoryWarningSeen,
+    this.onboardingSeen = false,
   });
 
   final ResolutionProfile resolutionProfile;
@@ -22,6 +23,9 @@ class AppSettings {
   final int maxDetections;
   final bool lowMemoryWarningSeen;
 
+  /// Whether the first-run introduction has been completed.
+  final bool onboardingSeen;
+
   AppSettings copyWith({
     ResolutionProfile? resolutionProfile,
     double? confidenceThreshold,
@@ -29,6 +33,7 @@ class AppSettings {
     bool? useNms,
     int? maxDetections,
     bool? lowMemoryWarningSeen,
+    bool? onboardingSeen,
   }) {
     return AppSettings(
       resolutionProfile: resolutionProfile ?? this.resolutionProfile,
@@ -37,6 +42,7 @@ class AppSettings {
       useNms: useNms ?? this.useNms,
       maxDetections: maxDetections ?? this.maxDetections,
       lowMemoryWarningSeen: lowMemoryWarningSeen ?? this.lowMemoryWarningSeen,
+      onboardingSeen: onboardingSeen ?? this.onboardingSeen,
     );
   }
 

@@ -1154,4 +1154,41 @@ class AppLocalizationsTr extends AppLocalizations {
   String exportFailed(String error) {
     return 'Dışa aktarılamadı: $error';
   }
+
+  @override
+  String get navModels => 'Modeller';
+
+  @override
+  String get navSettings => 'Ayarlar';
+
+  @override
+  String get onboardingTitle => 'Telefonunuzda nesne tespiti';
+
+  @override
+  String get onboardingPrivacyTitle => 'Tasarımdan gizli';
+
+  @override
+  String get onboardingPrivacyBody =>
+      'Her şey cihazınızda çalışır. Fotoğraflarınız cihazdan çıkmaz ve hesap gerekmez.';
+
+  @override
+  String get onboardingModelsTitle => 'Kendi modelinizi getirin';
+
+  @override
+  String get onboardingModelsBody =>
+      'Yerleşik modelle başlayın ya da kendi YOLO modelinizi içe aktarıp bu telefonda ne kadar hızlı çalıştığını test edin.';
+
+  @override
+  String get onboardingCameraTitle => 'Kamera erişimi';
+
+  @override
+  String get onboardingCameraBody =>
+      'Kamera yalnızca canlı tespit ve fotoğraf için kullanılır. Android, ilk açılışta izin ister. Galerinizden resim de seçebilirsiniz.';
+
+  @override
+  String get onboardingStart => 'Başlayın';
+
+  @override
+  String get cameraPermissionDenied =>
+      'Kamera erişimi kapalı. Telefonunuzun ayarlarından izin verin ya da bunun yerine galeriden bir resim seçin.';
 }

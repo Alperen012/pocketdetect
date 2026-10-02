@@ -22,6 +22,7 @@ class SettingsController extends ChangeNotifier {
   static const String _keyMaxDetections = 'max_detections';
   static const String _keyLowMemoryWarningSeen = 'low_memory_warning_seen';
   static const String _keySelectedLabels = 'selected_labels';
+  static const String _keyOnboardingSeen = 'onboarding_seen';
 
   AppSettings get settings => _settings;
   Set<String> get selectedLabels => _selectedLabels;
@@ -100,8 +101,29 @@ class SettingsController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void markOnboardingSeen() {
+    if (_settings.onboardingSeen) {
+      return;
+    }
+    _settings = _settings.copyWith(onboardingSeen: true);
+    _prefs.setBool(_keyOnboardingSeen, true);
+    notifyListeners();
+  }
+
+  /// First-run defaults that depend on the device. A low-RAM phone starts on
+  /// the balanced resolution instead of the heavier default. Does nothing once
+  /// a resolution has been stored, so it never overrides the user's choice.
+  void applyDeviceDefaults({required bool lowRam}) {
+    if (!lowRam || _prefs.containsKey(_keyResolution)) {
+      return;
+    }
+    updateResolution(ResolutionProfile.balanced);
+  }
+
   void resetToDefaults() {
-    _settings = AppSettings.defaults;
+    // Resetting detection tuning must not replay the introduction.
+    final onboardingSeen = _settings.onboardingSeen;
+    _settings = AppSettings.defaults.copyWith(onboardingSeen: onboardingSeen);
     _selectedLabels = _allLabels.toSet();
     _prefs.setString(_keyResolution, _settings.resolutionProfile.id);
     _prefs.setDouble(_keyConfidence, _settings.confidenceThreshold);
@@ -124,6 +146,7 @@ class SettingsController extends ChangeNotifier {
       maxDetections:
           _prefs.getInt(_keyMaxDetections) ?? AppSettings.defaults.maxDetections,
       lowMemoryWarningSeen: _prefs.getBool(_keyLowMemoryWarningSeen) ?? false,
+      onboardingSeen: _prefs.getBool(_keyOnboardingSeen) ?? false,
     );
   }
 

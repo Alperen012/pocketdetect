@@ -27,6 +27,17 @@ abstract interface class DownloadRecorder {
   void markAsDownloaded(String modelId);
 }
 
+/// Used when the marketplace is switched off: there is no backend to tell.
+class NoopDownloadRecorder implements DownloadRecorder {
+  const NoopDownloadRecorder();
+
+  @override
+  Future<String?> recordDownload(String modelId, String version) async => null;
+
+  @override
+  void markAsDownloaded(String modelId) {}
+}
+
 /// Downloads model files, validates them and installs them into the
 /// [ModelLibraryService]. Progress and failures are tracked per key: the
 /// marketplace model id, or the URL for direct imports.

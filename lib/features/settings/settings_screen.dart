@@ -8,6 +8,7 @@ import '../../core/services/settings_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/services/model_library_service.dart';
 import '../models/models_screen.dart';
+import '../preferences/preferences_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -17,6 +18,10 @@ class SettingsScreen extends StatelessWidget {
     final controller = context.watch<SettingsController>();
     final settings = controller.settings;
     final l10n = context.l10n;
+    // The class filter is built from COCO names, so it only applies to models
+    // that use them.
+    final supportsLabelFilter =
+        context.watch<ModelLibraryService>().activeModel.supportsLabelFilter;
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.advancedSettings),
@@ -29,6 +34,24 @@ class SettingsScreen extends StatelessWidget {
                 style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
             const SizedBox(height: 12),
             const _ActiveModelCard(),
+            if (supportsLabelFilter) ...<Widget>[
+              const SizedBox(height: 12),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.checklist, color: AppColors.accent),
+                  title: Text(l10n.detectionPreferences),
+                  subtitle: Text(
+                    l10n.selectedClassCount(controller.selectedLabels.length),
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const PreferencesScreen(),
+                    ),
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 24),
             Text(l10n.sectionDetectionThresholds,
                 style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),

@@ -2149,6 +2149,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not export: {error}'**
   String exportFailed(String error);
+
+  /// No description provided for @navModels.
+  ///
+  /// In en, this message translates to:
+  /// **'Models'**
+  String get navModels;
+
+  /// No description provided for @navSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get navSettings;
+
+  /// No description provided for @onboardingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Detect objects on your phone'**
+  String get onboardingTitle;
+
+  /// No description provided for @onboardingPrivacyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Private by design'**
+  String get onboardingPrivacyTitle;
+
+  /// No description provided for @onboardingPrivacyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything runs on your device. Your photos never leave it and no account is needed.'**
+  String get onboardingPrivacyBody;
+
+  /// No description provided for @onboardingModelsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring your own model'**
+  String get onboardingModelsTitle;
+
+  /// No description provided for @onboardingModelsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with the built-in model, or import your own YOLO model and test how fast it runs on this phone.'**
+  String get onboardingModelsBody;
+
+  /// No description provided for @onboardingCameraTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera access'**
+  String get onboardingCameraTitle;
+
+  /// No description provided for @onboardingCameraBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera is used only for live detection and photos. Android asks for permission the first time you open it. You can also pick pictures from your gallery.'**
+  String get onboardingCameraBody;
+
+  /// No description provided for @onboardingStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get onboardingStart;
+
+  /// No description provided for @cameraPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera access is off. Allow it in your phone\'s settings, or pick a picture from your gallery instead.'**
+  String get cameraPermissionDenied;
 }
 
 class _AppLocalizationsDelegate

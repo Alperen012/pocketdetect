@@ -1152,4 +1152,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String exportFailed(String error) {
     return 'Could not export: $error';
   }
+
+  @override
+  String get navModels => 'Models';
+
+  @override
+  String get navSettings => 'Settings';
+
+  @override
+  String get onboardingTitle => 'Detect objects on your phone';
+
+  @override
+  String get onboardingPrivacyTitle => 'Private by design';
+
+  @override
+  String get onboardingPrivacyBody =>
+      'Everything runs on your device. Your photos never leave it and no account is needed.';
+
+  @override
+  String get onboardingModelsTitle => 'Bring your own model';
+
+  @override
+  String get onboardingModelsBody =>
+      'Start with the built-in model, or import your own YOLO model and test how fast it runs on this phone.';
+
+  @override
+  String get onboardingCameraTitle => 'Camera access';
+
+  @override
+  String get onboardingCameraBody =>
+      'The camera is used only for live detection and photos. Android asks for permission the first time you open it. You can also pick pictures from your gallery.';
+
+  @override
+  String get onboardingStart => 'Get started';
+
+  @override
+  String get cameraPermissionDenied =>
+      'Camera access is off. Allow it in your phone\'s settings, or pick a picture from your gallery instead.';
 }

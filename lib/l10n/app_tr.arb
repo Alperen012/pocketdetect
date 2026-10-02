@@ -360,5 +360,16 @@
   "exportCsv": "CSV olarak paylaş",
   "exportImage": "Kutulu görseli paylaş",
   "exportFailed": "Dışa aktarılamadı: {error}",
-  "@exportFailed": { "placeholders": { "error": { "type": "String" } } }
+  "@exportFailed": { "placeholders": { "error": { "type": "String" } } },
+  "navModels": "Modeller",
+  "navSettings": "Ayarlar",
+  "onboardingTitle": "Telefonunuzda nesne tespiti",
+  "onboardingPrivacyTitle": "Tasarımdan gizli",
+  "onboardingPrivacyBody": "Her şey cihazınızda çalışır. Fotoğraflarınız cihazdan çıkmaz ve hesap gerekmez.",
+  "onboardingModelsTitle": "Kendi modelinizi getirin",
+  "onboardingModelsBody": "Yerleşik modelle başlayın ya da kendi YOLO modelinizi içe aktarıp bu telefonda ne kadar hızlı çalıştığını test edin.",
+  "onboardingCameraTitle": "Kamera erişimi",
+  "onboardingCameraBody": "Kamera yalnızca canlı tespit ve fotoğraf için kullanılır. Android, ilk açılışta izin ister. Galerinizden resim de seçebilirsiniz.",
+  "onboardingStart": "Başlayın",
+  "cameraPermissionDenied": "Kamera erişimi kapalı. Telefonunuzun ayarlarından izin verin ya da bunun yerine galeriden bir resim seçin."
 }

@@ -1,56 +1,74 @@
 # YOLO Mobile
 
-Flutter tabanlı mobil nesne tespit uygulaması. Uygulama, TFLite formatındaki
-YOLO modelini kullanarak fotoğraftan nesne tespiti yapar ve sonuçları kutular
-ve özet liste olarak gösterir.
+Flutter tabanlı, cihaz üstünde çalışan nesne tespiti uygulaması. TFLite
+formatındaki YOLO modelleriyle fotoğraftan, galeriden, toplu görsellerden ve
+canlı kameradan nesne tespiti yapar. Hesap ve internet gerekmez; fotoğraflar
+cihazdan çıkmaz.
 
 ## Özellikler
 
-- Kamera veya galeriden görsel ile tespit
-- Sınıf bazlı tercih yönetimi (kategori ve etiket seçimi)
-- Confidence/IoU/NMS/max detections ayarları
+- Kamera, galeri, toplu görsel ve canlı kamera ile tespit
+- Kendi YOLO TFLite modelini içe aktarma: `.tflite` dosyası, model ve
+  `labels.txt` içeren `.zip` paketi ya da bağlantıdan indirme
+- Model kütüphanesi: birden çok model, aktif model seçimi, silme
+- Performans testi: CPU, GPU ve NNAPI için medyan/ortalama/p90 süreler,
+  paylaşılabilir rapor
+- İki modeli aynı görselde yan yana karşılaştırma
+- Sonuçları JSON, CSV ve kutulu PNG olarak dışa aktarma
+- Sınıf bazlı filtre (COCO modelleri için), güven/IoU/NMS/maksimum tespit ayarları
 - Çözünürlük profilleri (Hızlı, Dengeli, Kalite, Maksimum)
-- Düşük bellek cihazı uyarısı (Android method channel)
-- Sonuç özeti kaydetme ve paylaşım için panoya kopyalama
+- İngilizce ve Türkçe arayüz
 
 ## Proje yapısı
 
-- `lib/core/models/`: Veri modelleri (`AppSettings`, `DetectedObject`, vb.)
-- `lib/core/services/`: Tespit servisi, cihaz yetenekleri, ayar kontrolcüsü
-- `lib/features/`: Ekranlar (`capture`, `results`, `preferences`, `settings`)
-- `assets/models/`: Çalışma zamanı TFLite model dosyası
-- `assets/labels/`: Etiket dosyası (`coco.txt`)
-- `tools/export_yolo26_tflite.py`: YOLO -> TFLite dönüşüm scripti
+- `lib/core/detection/`: tespit hattının saf, testli parçaları (letterbox,
+  decode, NMS, tensör G/Ç, kamera karesi dönüşümü, delegate seçimi)
+- `lib/core/services/`: tespit servisi, model kütüphanesi, indirme, ayarlar
+- `lib/core/benchmark/`, `lib/core/export/`: performans testi ve dışa aktarma
+- `lib/features/`: ekranlar (`home`, `capture`, `results`, `models`,
+  `settings`, `preferences`, `history`, `batch`, `onboarding`; ayrıca bayrağın
+  arkasındaki `marketplace`, `profile`, `auth`)
+- `assets/models/`, `assets/labels/`: yerleşik model ve COCO etiketleri
+- `tools/export_yolo26_tflite.py`: YOLO → TFLite dönüşüm scripti
+
+Ayrıntılı mimari notları için `CLAUDE.md` dosyasına bakın.
 
 ## Gereksinimler
 
 - Flutter SDK (3.9+ önerilir)
-- Dart SDK (Flutter ile gelen)
 - Android Studio / Xcode (hedef platforma göre)
 
-## Kurulum
+## Çalıştırma
 
-1. Bağımlılıkları yükleyin.
-2. Model ve etiket dosyalarının doğru konumda olduğundan emin olun:
-	 - `assets/models/yolo26n_int8.tflite`
-	 - `assets/labels/coco.txt`
-3. Uygulamayı çalıştırın.
+```bash
+flutter pub get
+flutter run
+```
+
+Pazaryeri ve hesaplar varsayılan olarak kapalıdır. Açmak için bir Supabase
+projesi gerekir:
+
+```bash
+flutter run --dart-define=MARKETPLACE=true \
+  --dart-define=SUPABASE_URL=https://<proje>.supabase.co \
+  --dart-define=SUPABASE_ANON_KEY=<anon anahtarı>
+```
 
 ## Test ve kalite kontrolleri
 
 - Statik analiz: `flutter analyze`
 - Test: `flutter test`
 
+Gerçek TFLite çıkarımı (benchmark, hızlandırıcılar, canlı kamera) yalnızca bir
+Android/iOS cihazda doğrulanabilir; birim ve widget testleri bunları taklit eder.
+
 ## Model notları
 
-- Varsayılan model: `YOLOv26 Nano (INT8)`
-- TFLite export scripti:
-	- `tools/export_yolo26_tflite.py`
-	- Ultralytics ile model export edip çıktıyı `assets/models/` altına kopyalar.
-
-## Bilinen sınırlamalar
-
-- Model seçim menüsünde şu an tek model seçeneği bulunmaktadır.
+- Varsayılan model: `YOLO26 Nano (INT8)`
+- Desteklenen model biçimi: girdi `[1, H, W, 3]`, çıktı `[1, 4 + sınıf, N]`
+  (int8 veya float32), NMS modelin dışında yapılır.
+- Dışa aktarma: `tools/export_yolo26_tflite.py` Ultralytics ile modeli
+  `imgsz=832`, `nms=False` olarak dışa aktarır ve `assets/models/` altına kopyalar.
 
 ## Lisans
 

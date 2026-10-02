@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-YOLO Mobile: a Flutter app that runs on-device object detection with a TFLite YOLO model (photo, gallery, batch and live camera), plus a Supabase-backed marketplace for downloading and publishing custom `.tflite` models. UI strings are localized in English and Turkish; the README is in Turkish.
+YOLO Mobile: a Flutter app that runs on-device object detection with a TFLite YOLO model (photo, gallery, batch and live camera), with a model library for importing, benchmarking and comparing custom `.tflite` models. A Supabase-backed marketplace and accounts exist but are switched off by default (see Feature flags). UI strings are localized in English and Turkish; the README is in Turkish.
 
 ## Commands
 
@@ -17,13 +17,13 @@ flutter test test/widget_test.dart --plain-name "tapping camera button"   # one 
 flutter gen-l10n                   # regenerate lib/l10n/generated after editing ARB files
 ```
 
-Running the app needs Supabase credentials passed as compile-time defines. The defaults in `lib/core/config/supabase_config.dart` are placeholders, and `Supabase.initialize` runs in `main()` before `runApp`:
+`flutter run` works with no configuration: the marketplace is off, so nothing touches Supabase and the app needs no account or network. To turn the marketplace on, pass the flag together with credentials (the defaults in `lib/core/config/supabase_config.dart` are placeholders):
 
 ```bash
-flutter run --dart-define=SUPABASE_URL=https://<project>.supabase.co --dart-define=SUPABASE_ANON_KEY=<anon key>
+flutter run --dart-define=MARKETPLACE=true --dart-define=SUPABASE_URL=https://<project>.supabase.co --dart-define=SUPABASE_ANON_KEY=<anon key>
 ```
 
-`R2_PUBLIC_URL` is an optional third define.
+`R2_PUBLIC_URL` is an optional extra define.
 
 Re-exporting the bundled model (requires Python with `ultralytics`; run from the repo root, because the script resolves paths from the current directory):
 
@@ -47,7 +47,11 @@ There is no DI framework. `lib/main.dart` constructs every service by hand and e
 
 `main.dart` also registers a listener on `ModelLibraryService` that calls `DetectionService.reloadIfNeeded(activeModel)`, so activating, importing or deleting a model hot-swaps the interpreter. Reloads are serialized: a request arriving during a load is parked in `_pendingModel` and applied when the load finishes.
 
-`HomeShell` is an `IndexedStack` with five tabs (home, capture, preferences, marketplace, profile). All tabs stay mounted, so `CaptureScreen` takes an `isActive` flag and creates or disposes the camera controller when its tab gains or loses focus.
+`YoloApp` shows `OnboardingScreen` until `AppSettings.onboardingSeen`, then `HomeShell`. `HomeShell` is an `IndexedStack` with four tabs (home, detect, models, settings); the marketplace and profile tabs are appended only when `AppFlags.marketplace` is on. All tabs stay mounted, so `CaptureScreen` takes an `isActive` flag and creates or disposes the camera controller when its tab gains or loses focus. Class preferences are a pushed route (`PreferencesScreen`) opened from the dashboard and the settings tab.
+
+### Feature flags
+
+`AppFlags.marketplace` (`--dart-define=MARKETPLACE=true`) gates Supabase initialization, `AuthService`, `MarketplaceService` and the extra tabs in `main.dart` and `HomeShell`. With it off, `DownloadManager` gets a `NoopDownloadRecorder` and URL import still works. The marketplace, profile and auth screens still contain hard-coded English strings; localize them before enabling the flag in a release.
 
 ### Detection pipeline (`lib/core/services/detection_service.dart`)
 
@@ -89,7 +93,7 @@ Things to know before changing it:
 
 Everything local goes through `SharedPreferences`; there is no database.
 
-- `SettingsController` stores one key per setting. `ModelLibraryService` stores the imported-model list as JSON (`installed_models_v1`) plus `active_model_id`.
+- `SettingsController` stores one key per setting, including `onboarding_seen`. `applyDeviceDefaults` starts low-RAM devices on the balanced resolution unless one was already stored. `ModelLibraryService` stores the imported-model list as JSON (`installed_models_v1`) plus `active_model_id`.
 - `DetectionHistoryService` stores a single encoded list, capped at 50 entries, newest first.
 - `MarketplaceService` caches the model list.
 

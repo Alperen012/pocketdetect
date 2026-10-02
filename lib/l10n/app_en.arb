@@ -394,5 +394,16 @@
   "exportCsv": "Share as CSV",
   "exportImage": "Share annotated image",
   "exportFailed": "Could not export: {error}",
-  "@exportFailed": { "placeholders": { "error": { "type": "String" } } }
+  "@exportFailed": { "placeholders": { "error": { "type": "String" } } },
+  "navModels": "Models",
+  "navSettings": "Settings",
+  "onboardingTitle": "Detect objects on your phone",
+  "onboardingPrivacyTitle": "Private by design",
+  "onboardingPrivacyBody": "Everything runs on your device. Your photos never leave it and no account is needed.",
+  "onboardingModelsTitle": "Bring your own model",
+  "onboardingModelsBody": "Start with the built-in model, or import your own YOLO model and test how fast it runs on this phone.",
+  "onboardingCameraTitle": "Camera access",
+  "onboardingCameraBody": "The camera is used only for live detection and photos. Android asks for permission the first time you open it. You can also pick pictures from your gallery.",
+  "onboardingStart": "Get started",
+  "cameraPermissionDenied": "Camera access is off. Allow it in your phone's settings, or pick a picture from your gallery instead."
 }

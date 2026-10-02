@@ -119,5 +119,39 @@ void main() {
       controller.markLowMemoryWarningSeen();
       expect(controller.settings.lowMemoryWarningSeen, true);
     });
+
+    test('onboarding starts unseen, persists once seen and survives a reset',
+        () {
+      expect(controller.settings.onboardingSeen, false);
+
+      controller.markOnboardingSeen();
+      expect(controller.settings.onboardingSeen, true);
+      expect(SettingsController(prefs).settings.onboardingSeen, true);
+
+      controller.resetToDefaults();
+      expect(controller.settings.onboardingSeen, true);
+    });
+
+    test('a low-RAM device starts on the balanced resolution', () {
+      controller.applyDeviceDefaults(lowRam: true);
+
+      expect(controller.settings.resolutionProfile.id, 'balanced');
+      expect(SettingsController(prefs).settings.resolutionProfile.id, 'balanced');
+    });
+
+    test('a normal device keeps the default resolution', () {
+      controller.applyDeviceDefaults(lowRam: false);
+
+      expect(controller.settings.resolutionProfile.id, 'quality');
+      expect(prefs.containsKey('resolution_profile'), false);
+    });
+
+    test('device defaults never override a stored choice', () {
+      controller.updateResolution(ResolutionProfile.maxQuality);
+
+      controller.applyDeviceDefaults(lowRam: true);
+
+      expect(controller.settings.resolutionProfile.id, 'max');
+    });
   });
 }
