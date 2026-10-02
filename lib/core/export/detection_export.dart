@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
 
+import '../detection/image_decode.dart';
 import '../models/detected_object.dart';
 
 /// Everything needed to export one detection run.
@@ -196,4 +197,22 @@ img.Image drawDetections(img.Image source, List<DetectedObject> detections) {
 /// PNG bytes of [source] with the detections drawn on it.
 Uint8List annotatedPng(img.Image source, List<DetectedObject> detections) {
   return Uint8List.fromList(img.encodePng(drawDetections(source, detections)));
+}
+
+/// Input for [renderAnnotatedFromBytes]; sendable to a `compute()` isolate.
+class AnnotateRequest {
+  const AnnotateRequest({required this.imageBytes, required this.detections});
+
+  final Uint8List imageBytes;
+  final List<DetectedObject> detections;
+}
+
+/// Decodes [AnnotateRequest.imageBytes] (honouring EXIF orientation, like the
+/// detector did), draws the detections and returns PNG bytes, or null when the
+/// bytes are not a decodable image. Top-level so it can run in `compute()`;
+/// decoding and encoding a full-size photo is too slow for the UI thread.
+Uint8List? renderAnnotatedFromBytes(AnnotateRequest request) {
+  final image = decodeUpright(request.imageBytes);
+  if (image == null) return null;
+  return annotatedPng(image, request.detections);
 }

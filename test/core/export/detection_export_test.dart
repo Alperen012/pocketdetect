@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'dart:ui' show Rect;
 
 import 'package:flutter_test/flutter_test.dart';
@@ -163,6 +164,53 @@ void main() {
 
       final decoded = img.decodePng(bytes)!;
       expect((decoded.width, decoded.height), (64, 48));
+    });
+  });
+
+  group('renderAnnotatedFromBytes', () {
+    test('annotates an encoded photo and returns a PNG', () {
+      final source = img.Image(width: 80, height: 60);
+      img.fill(source, color: img.ColorRgb8(0, 0, 0));
+      final jpg = Uint8List.fromList(img.encodeJpg(source));
+
+      final png = renderAnnotatedFromBytes(AnnotateRequest(
+        imageBytes: jpg,
+        detections: <DetectedObject>[
+          det('x', 0.9, const Rect.fromLTWH(0.2, 0.2, 0.5, 0.5)),
+        ],
+      ))!;
+
+      final decoded = img.decodePng(png)!;
+      expect((decoded.width, decoded.height), (80, 60));
+      // Something was drawn: not every pixel is still black.
+      var painted = 0;
+      for (final px in decoded) {
+        if (px.r > 0 || px.g > 0 || px.b > 0) painted++;
+      }
+      expect(painted, greaterThan(0));
+    });
+
+    test('applies EXIF orientation like the detector, so boxes line up', () {
+      final source = img.Image(width: 80, height: 40)
+        ..exif.imageIfd.orientation = 6;
+      final jpg = Uint8List.fromList(img.encodeJpg(source));
+
+      final png = renderAnnotatedFromBytes(
+        AnnotateRequest(imageBytes: jpg, detections: const <DetectedObject>[]),
+      )!;
+
+      final decoded = img.decodePng(png)!;
+      expect((decoded.width, decoded.height), (40, 80));
+    });
+
+    test('returns null for bytes that are not an image', () {
+      expect(
+        renderAnnotatedFromBytes(AnnotateRequest(
+          imageBytes: Uint8List.fromList(<int>[1, 2, 3]),
+          detections: const <DetectedObject>[],
+        )),
+        isNull,
+      );
     });
   });
 }

@@ -5,7 +5,8 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-/// Hands text and files to the system share sheet.
+/// Hands text and files to the system share sheet. Subclass to intercept
+/// exports in tests.
 class ShareService {
   const ShareService();
 

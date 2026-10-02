@@ -51,14 +51,15 @@ There is no DI framework. `lib/main.dart` constructs every service by hand and e
 
 ### Detection pipeline (`lib/core/services/detection_service.dart`)
 
+0. Decode with `decodeUpright` (`image_decode.dart`), which applies EXIF orientation so pixels match what Flutter's `Image` shows. Never call `img.decodeImage` directly: it ignores EXIF (boxes would not line up on sideways photos) and can throw on truncated files.
 1. Pre-downscale the image so its longest side is at most `ResolutionProfile.size` (`capLongestSide`). The profile is only a cap; the real input size comes from the model's input tensor.
 2. Letterbox to the model's square input with gray (114) padding (`LetterboxParams`).
-3. Build the input tensor in a `compute()` isolate, quantizing when the input is int8.
-4. Run `interpreter.run` on the main isolate, because the interpreter holds native resources.
-5. Dequantize the output, then decode and filter by confidence and selected labels in a second `compute()` isolate (`decodeYolo`). Boxes are un-letterboxed into normalized `[0,1]` coordinates relative to the original image.
+3. Build the input tensor as flat bytes (`buildInputBytes`, `tensor_io.dart`) in a `compute()` isolate, quantizing when the input is int8.
+4. Run `interpreter.runInference` on the main isolate, because the interpreter holds native resources. Feed it the byte buffer directly rather than nested lists.
+5. Copy the output tensor out of native memory (`Tensor.data` is a live view that the next run overwrites), split and dequantize it (`parseOutputBytes`), then decode and filter by confidence and selected labels in a second `compute()` isolate (`decodeYolo`). Boxes are un-letterboxed into normalized `[0,1]` coordinates relative to the original image.
 6. Run NMS (`nonMaxSuppression`), unless disabled in settings.
 
-The pure, unit-tested parts live in `lib/core/detection/`: `letterbox.dart`, `yolo_decoder.dart`, `nms.dart`, `camera_frame.dart` (YUV420/BGRA conversion and rotation for live frames) and `interpreter_factory.dart` (delegate order and fallback). `DetectionService` only orchestrates them.
+The pure, unit-tested parts live in `lib/core/detection/`: `letterbox.dart`, `yolo_decoder.dart`, `nms.dart`, `camera_frame.dart` (YUV420/BGRA conversion and rotation for live frames), `tensor_io.dart` (flat input/output buffers), `image_decode.dart` and `interpreter_factory.dart` (delegate order and fallback). `DetectionService` only orchestrates them.
 
 Things to know before changing it:
 
@@ -77,6 +78,12 @@ Things to know before changing it:
 - Labels: an explicit list wins; otherwise `usesCocoLabels` means the bundled COCO names; otherwise `class_N` is generated. Downloads carry no label file, so they assume COCO only when the model has 80 classes.
 - The class-selection filter is built from the hard-coded COCO groups in `core/models/category_group.dart` and only applies when `InstalledModel.supportsLabelFilter` (COCO labels). Every detection caller passes `filterBySelectedLabels: model.supportsLabelFilter`; the parameter defaults to `true`.
 - The old single-custom-model settings keys are migrated into the library once on first start, then deleted (`ModelLibraryService._migrateLegacySettings`).
+
+### Benchmark, comparison and export
+
+- `core/benchmark/`: `benchmark_report.dart` (timing statistics and the shareable report, pure and tested) and `model_benchmark.dart` (runs the model on CPU/GPU/NNAPI with a zero input; needs native TFLite). `features/models/benchmark_screen.dart` takes an injectable runner.
+- `features/models/compare_screen.dart` runs two models one after the other, each in a throw-away `DetectionService`, so the app's active model is untouched.
+- `core/export/`: `detection_export.dart` builds JSON/CSV and annotated PNGs (pure; CSV neutralizes formula-looking labels because labels come from user files), `share_service.dart` wraps the system share sheet and is replaced in tests. The results screen's export menu uses them; the PNG is rendered in an isolate via `renderAnnotatedFromBytes`.
 
 ### Persistence
 

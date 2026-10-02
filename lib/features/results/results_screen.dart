@@ -1,12 +1,16 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../core/export/detection_export.dart';
+import '../../core/export/share_service.dart';
 import '../../core/l10n/l10n_extensions.dart';
 import '../../core/models/detected_object.dart';
 import '../../core/models/detection_history_entry.dart';
@@ -16,17 +20,23 @@ import '../../core/services/model_library_service.dart';
 import '../../core/services/settings_controller.dart';
 import '../../core/theme/app_colors.dart';
 
+enum _ExportKind { json, csv, image }
+
 class ResultsScreen extends StatefulWidget {
   const ResultsScreen({
     super.key,
     required this.imageFile,
     this.autoStartProcessing = true,
     this.showRetakeAction = false,
+    this.share = const ShareService(),
   });
 
   final File imageFile;
   final bool autoStartProcessing;
   final bool showRetakeAction;
+
+  /// Hands exports to the system share sheet; replaceable in tests.
+  final ShareService share;
 
   @override
   State<ResultsScreen> createState() => _ResultsScreenState();
@@ -38,6 +48,13 @@ class _ResultsScreenState extends State<ResultsScreen> {
   bool _isActionInProgress = false;
   bool _showOverlay = true;
   double _imageAspectRatio = 1.0;
+  int? _imageWidth;
+  int? _imageHeight;
+
+  // Kept for export once detection has finished.
+  List<DetectedObject>? _detections;
+  int _lastInferenceMs = 0;
+  String _lastModelName = '';
 
   bool get _hasAnalysisStarted => _future != null;
 
@@ -57,6 +74,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
       if (mounted) {
         setState(() {
           _imageAspectRatio = info.image.width / info.image.height;
+          _imageWidth = info.image.width;
+          _imageHeight = info.image.height;
         });
       }
     }));
@@ -115,7 +134,13 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
     // Save to history when detection completes
     future.then((detections) {
-      if (!mounted || detections.isEmpty) return;
+      if (!mounted) return;
+      setState(() {
+        _detections = detections;
+        _lastInferenceMs = detectionService.lastInferenceMs;
+        _lastModelName = model.name;
+      });
+      if (detections.isEmpty) return;
       final historyService = context.read<DetectionHistoryService>();
       final modelName = model.name;
       historyService.addEntry(DetectionHistoryEntry(
@@ -129,6 +154,61 @@ class _ResultsScreenState extends State<ResultsScreen> {
     }).ignore();
   }
 
+  Future<void> _export(_ExportKind kind) async {
+    final detections = _detections;
+    if (detections == null) return;
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final share = widget.share;
+
+    final path = widget.imageFile.path;
+    final base = p.basenameWithoutExtension(path);
+    final export = DetectionExport(
+      imageName: p.basename(path),
+      modelName: _lastModelName,
+      inferenceMs: _lastInferenceMs,
+      timestamp: DateTime.now(),
+      detections: detections,
+      imageWidth: _imageWidth,
+      imageHeight: _imageHeight,
+    );
+
+    try {
+      switch (kind) {
+        case _ExportKind.json:
+          await share.shareBytes(
+            Uint8List.fromList(utf8.encode(detectionsToJson(export))),
+            fileName: '$base.json',
+            mimeType: 'application/json',
+          );
+        case _ExportKind.csv:
+          await share.shareBytes(
+            Uint8List.fromList(utf8.encode(detectionsToCsv(export))),
+            fileName: '$base.csv',
+            mimeType: 'text/csv',
+          );
+        case _ExportKind.image:
+          final bytes = await widget.imageFile.readAsBytes();
+          final png = await compute(
+            renderAnnotatedFromBytes,
+            AnnotateRequest(imageBytes: bytes, detections: detections),
+          );
+          if (png == null) {
+            throw const FormatException('The image could not be read.');
+          }
+          await share.shareBytes(
+            png,
+            fileName: '${base}_detected.png',
+            mimeType: 'image/png',
+          );
+      }
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.exportFailed(e.toString()))),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final detectionService = context.watch<DetectionService>();
@@ -136,6 +216,28 @@ class _ResultsScreenState extends State<ResultsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.detectionResults),
+        actions: <Widget>[
+          if (_detections != null && !_isAnalyzing)
+            PopupMenuButton<_ExportKind>(
+              tooltip: l10n.exportTitle,
+              icon: const Icon(Icons.ios_share),
+              onSelected: _export,
+              itemBuilder: (_) => <PopupMenuEntry<_ExportKind>>[
+                PopupMenuItem<_ExportKind>(
+                  value: _ExportKind.json,
+                  child: Text(l10n.exportJson),
+                ),
+                PopupMenuItem<_ExportKind>(
+                  value: _ExportKind.csv,
+                  child: Text(l10n.exportCsv),
+                ),
+                PopupMenuItem<_ExportKind>(
+                  value: _ExportKind.image,
+                  child: Text(l10n.exportImage),
+                ),
+              ],
+            ),
+        ],
       ),
       body: SafeArea(
         child: ListView(
