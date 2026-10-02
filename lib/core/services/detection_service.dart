@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
 
+import '../detection/interpreter_factory.dart';
 import '../detection/letterbox.dart';
 import '../detection/nms.dart';
 import '../detection/yolo_decoder.dart';
@@ -89,8 +90,18 @@ class DetectionService extends ChangeNotifier {
   bool _isLoading = false;
   AppSettings? _pendingSettings;
 
+  DelegateKind? _activeDelegate;
+  Map<DelegateKind, Object> _delegateFailures = const <DelegateKind, Object>{};
+
   bool get isReady => _interpreter != null && _labels.isNotEmpty;
   String? get error => _error;
+
+  /// Which hardware path the loaded model actually runs on.
+  DelegateKind? get activeDelegate => _activeDelegate;
+
+  /// Delegates that were tried first but could not load, with the reason.
+  Map<DelegateKind, Object> get delegateFailures =>
+      Map<DelegateKind, Object>.unmodifiable(_delegateFailures);
   /// Wall-clock time of the last `interpreter.run()` call in milliseconds.
   int get lastInferenceMs => _lastInferenceMs;
 
@@ -443,51 +454,14 @@ class DetectionService extends ChangeNotifier {
   Future<Interpreter> _createInterpreter(String? modelPath, bool useCustom) async {
     const modelAssetPath = 'assets/models/yolo26n_int8.tflite';
 
-    // Attempt 1: NNAPI (Android hardware accelerator).
-    try {
-      final nnOptions = InterpreterOptions()..useNnApiForAndroid = true;
-      return await _loadInterpreterWithOptions(
-        nnOptions,
-        modelPath,
-        useCustom,
-        modelAssetPath,
-      );
-    } catch (_) {}
+    final source = useCustom && modelPath != null && modelPath.isNotEmpty
+        ? ModelSource.file(modelPath)
+        : const ModelSource.asset(modelAssetPath);
 
-    // Attempt 2: GPU delegate — use a fresh options object so no
-    // stale NNAPI flag leaks in.
-    GpuDelegateV2? gpuDelegate;
-    try {
-      gpuDelegate = GpuDelegateV2();
-      final gpuOptions = InterpreterOptions()..addDelegate(gpuDelegate);
-      return await _loadInterpreterWithOptions(
-        gpuOptions,
-        modelPath,
-        useCustom,
-        modelAssetPath,
-      );
-    } catch (_) {
-      gpuDelegate?.delete();
-    }
-
-    // Attempt 3: CPU fallback.
-    if (useCustom && modelPath != null && modelPath.isNotEmpty) {
-      return Interpreter.fromFile(File(modelPath));
-    }
-
-    return Interpreter.fromAsset(modelAssetPath);
-  }
-
-  Future<Interpreter> _loadInterpreterWithOptions(
-    InterpreterOptions options,
-    String? modelPath,
-    bool useCustom,
-    String modelAssetPath,
-  ) async {
-    if (useCustom && modelPath != null && modelPath.isNotEmpty) {
-      return Interpreter.fromFile(File(modelPath), options: options);
-    }
-    return Interpreter.fromAsset(modelAssetPath, options: options);
+    final result = await createInterpreter(source);
+    _activeDelegate = result.delegate;
+    _delegateFailures = result.failures;
+    return result.interpreter;
   }
 
   Object _buildOutputBuffer(Tensor outputTensor) {
