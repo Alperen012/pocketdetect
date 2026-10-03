@@ -19,6 +19,7 @@ import '../../core/services/detection_service.dart';
 import '../../core/services/model_library_service.dart';
 import '../../core/services/settings_controller.dart';
 import '../../core/theme/app_colors.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 enum _ExportKind { json, csv, image }
 
@@ -43,6 +44,7 @@ class ResultsScreen extends StatefulWidget {
 }
 
 class _ResultsScreenState extends State<ResultsScreen> {
+  final TransformationController _zoomController = TransformationController();
   Future<List<DetectedObject>>? _future;
   bool _isAnalyzing = false;
   bool _isActionInProgress = false;
@@ -70,15 +72,17 @@ class _ResultsScreenState extends State<ResultsScreen> {
   void _loadImageDimensions() {
     final imageProvider = FileImage(widget.imageFile);
     final stream = imageProvider.resolve(ImageConfiguration.empty);
-    stream.addListener(ImageStreamListener((ImageInfo info, bool _) {
-      if (mounted) {
-        setState(() {
-          _imageAspectRatio = info.image.width / info.image.height;
-          _imageWidth = info.image.width;
-          _imageHeight = info.image.height;
-        });
-      }
-    }));
+    stream.addListener(
+      ImageStreamListener((ImageInfo info, bool _) {
+        if (mounted) {
+          setState(() {
+            _imageAspectRatio = info.image.width / info.image.height;
+            _imageWidth = info.image.width;
+            _imageHeight = info.image.height;
+          });
+        }
+      }),
+    );
   }
 
   Future<void> _startDetection() async {
@@ -143,14 +147,16 @@ class _ResultsScreenState extends State<ResultsScreen> {
       if (detections.isEmpty) return;
       final historyService = context.read<DetectionHistoryService>();
       final modelName = model.name;
-      historyService.addEntry(DetectionHistoryEntry(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        imagePath: widget.imageFile.path,
-        detections: detections,
-        timestamp: DateTime.now(),
-        inferenceMs: detectionService.lastInferenceMs,
-        modelName: modelName,
-      ));
+      historyService.addEntry(
+        DetectionHistoryEntry(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          imagePath: widget.imageFile.path,
+          detections: detections,
+          timestamp: DateTime.now(),
+          inferenceMs: detectionService.lastInferenceMs,
+          modelName: modelName,
+        ),
+      );
     }).ignore();
   }
 
@@ -210,6 +216,12 @@ class _ResultsScreenState extends State<ResultsScreen> {
   }
 
   @override
+  void dispose() {
+    _zoomController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final detectionService = context.watch<DetectionService>();
     final l10n = context.l10n;
@@ -240,36 +252,79 @@ class _ResultsScreenState extends State<ResultsScreen> {
         ],
       ),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: <Widget>[
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 480),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Stack(
+        child: OrientationBuilder(
+          builder: (context, orientation) {
+            final panel = _buildImagePanel(detectionService, l10n);
+            final details = _buildDetails(detectionService, l10n);
+            if (orientation == Orientation.landscape) {
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    Positioned.fill(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(24),
-                        child: Image.file(widget.imageFile, fit: BoxFit.contain),
-                      ),
-                    ),
-                    if (_future != null)
-                      Positioned.fill(
-                        child: FutureBuilder<List<DetectedObject>>(
+                    Expanded(flex: 3, child: panel),
+                    const SizedBox(width: 16),
+                    Expanded(flex: 2, child: ListView(children: details)),
+                  ],
+                ),
+              );
+            }
+            return ListView(
+              padding: const EdgeInsets.all(20),
+              children: <Widget>[
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 480),
+                  child: panel,
+                ),
+                ...details,
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  /// The photo with its detection overlay and badges.
+  Widget _buildImagePanel(
+    DetectionService detectionService,
+    AppLocalizations l10n,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Stack(
+        children: <Widget>[
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              // Pinch to zoom; the boxes share the image's layer so
+              // they scale with it. Double tap resets.
+              child: GestureDetector(
+                onDoubleTap: () => _zoomController.value = Matrix4.identity(),
+                child: InteractiveViewer(
+                  transformationController: _zoomController,
+                  minScale: 1,
+                  maxScale: 6,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: <Widget>[
+                      Image.file(widget.imageFile, fit: BoxFit.contain),
+                      if (_future != null)
+                        FutureBuilder<List<DetectedObject>>(
                           future: _future,
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
                               return _buildImageLoadingOverlay();
                             }
                             if (snapshot.hasError || !_showOverlay) {
                               return const SizedBox.shrink();
                             }
-                            final detections = snapshot.data ?? <DetectedObject>[];
+                            final detections =
+                                snapshot.data ?? <DetectedObject>[];
                             if (detections.isEmpty) {
                               return const SizedBox.shrink();
                             }
@@ -281,87 +336,154 @@ class _ResultsScreenState extends State<ResultsScreen> {
                             );
                           },
                         ),
-                      ),
-                    // Overlay toggle — only shown after processing finishes
-                    if (!_isAnalyzing && _hasAnalysisStarted)
-                      Positioned(
-                        top: 10,
-                        right: 12,
-                        child: Material(
-                          color: Colors.black.withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(999),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(999),
-                            onTap: () => setState(() => _showOverlay = !_showOverlay),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: Icon(
-                                _showOverlay
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
-                                size: 20,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    // Inference-time badge — only shown after processing finishes
-                    if (!_isAnalyzing && _hasAnalysisStarted)
-                      Positioned(
-                        bottom: 10,
-                        right: 12,
-                        child: FutureBuilder<List<DetectedObject>>(
-                          future: _future,
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState != ConnectionState.done) {
-                              return const SizedBox.shrink();
-                            }
-                            final ms = detectionService.lastInferenceMs;
-                            return Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.6),
-                                borderRadius: BorderRadius.circular(999),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: <Widget>[
-                                  const Icon(Icons.speed_outlined,
-                                      size: 12, color: AppColors.accent),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    l10n.inferenceTimeMs(ms),
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.accent,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Text(l10n.analysisSummary,
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                Chip(label: Text(l10n.results)),
-              ],
+          ),
+          // Overlay toggle — only shown after processing finishes
+          if (!_isAnalyzing && _hasAnalysisStarted)
+            Positioned(
+              top: 10,
+              right: 12,
+              child: Material(
+                color: Colors.black.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(999),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(999),
+                  onTap: () => setState(() => _showOverlay = !_showOverlay),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Icon(
+                      _showOverlay ? Icons.visibility : Icons.visibility_off,
+                      size: 20,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(height: 12),
-            if (detectionService.error != null)
-              Container(
-                width: double.infinity,
+          // Inference-time badge — only shown after processing finishes
+          if (!_isAnalyzing && _hasAnalysisStarted)
+            Positioned(
+              bottom: 10,
+              right: 12,
+              child: FutureBuilder<List<DetectedObject>>(
+                future: _future,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return const SizedBox.shrink();
+                  }
+                  final ms = detectionService.lastInferenceMs;
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        const Icon(
+                          Icons.speed_outlined,
+                          size: 12,
+                          color: AppColors.accent,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          l10n.inferenceTimeMs(ms),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.accent,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Summary, errors and action buttons below (or beside) the photo.
+  List<Widget> _buildDetails(
+    DetectionService detectionService,
+    AppLocalizations l10n,
+  ) {
+    return <Widget>[
+      const SizedBox(height: 20),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Text(
+            l10n.analysisSummary,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          Chip(label: Text(l10n.results)),
+        ],
+      ),
+      const SizedBox(height: 12),
+      if (detectionService.error != null)
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.red.shade900.withValues(alpha: 0.25),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.red.shade700),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const Icon(
+                Icons.error_outline,
+                color: Colors.redAccent,
+                size: 18,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  detectionService.error!,
+                  style: const TextStyle(
+                    color: Colors.redAccent,
+                    fontSize: 13,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        )
+      else if (_future == null)
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Text(
+            l10n.photoReadyTapToProcess,
+            style: const TextStyle(color: AppColors.textSecondary),
+          ),
+        )
+      else
+        FutureBuilder<List<DetectedObject>>(
+          future: _future,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return _buildSummaryLoadingState();
+            }
+            if (snapshot.hasError) {
+              return Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: Colors.red.shade900.withValues(alpha: 0.25),
@@ -371,185 +493,153 @@ class _ResultsScreenState extends State<ResultsScreen> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    const Icon(Icons.error_outline, color: Colors.redAccent, size: 18),
+                    const Icon(
+                      Icons.error_outline,
+                      color: Colors.redAccent,
+                      size: 18,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        detectionService.error!,
+                        l10n.analysisError(snapshot.error.toString()),
                         style: const TextStyle(
-                            color: Colors.redAccent, fontSize: 13, height: 1.4),
+                          color: Colors.redAccent,
+                          fontSize: 13,
+                          height: 1.4,
+                        ),
                       ),
                     ),
                   ],
                 ),
-              )
-            else if (_future == null)
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Text(
-                  l10n.photoReadyTapToProcess,
-                  style: const TextStyle(color: AppColors.textSecondary),
-                ),
-              )
-            else
-              FutureBuilder<List<DetectedObject>>(
-                future: _future,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return _buildSummaryLoadingState();
-                  }
-                  if (snapshot.hasError) {
-                    return Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.red.shade900.withValues(alpha: 0.25),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: Colors.red.shade700),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          const Icon(Icons.error_outline,
-                              color: Colors.redAccent, size: 18),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              l10n.analysisError(snapshot.error.toString()),
-                              style: const TextStyle(
-                                  color: Colors.redAccent, fontSize: 13, height: 1.4),
-                            ),
+              );
+            }
+            final detections = snapshot.data ?? <DetectedObject>[];
+            if (detections.isEmpty) {
+              return Text(
+                l10n.noDetectionsFound,
+                style: const TextStyle(color: AppColors.textSecondary),
+              );
+            }
+            final summary = _summarize(detections);
+            return Column(
+              children: summary
+                  .map(
+                    (item) => Card(
+                      child: ListTile(
+                        title: Text(item.label),
+                        subtitle: Text(
+                          l10n.confidenceValue(
+                            item.maxConfidence.toStringAsFixed(2),
                           ),
-                        ],
-                      ),
-                    );
-                  }
-                  final detections = snapshot.data ?? <DetectedObject>[];
-                  if (detections.isEmpty) {
-                    return Text(
-                      l10n.noDetectionsFound,
-                      style: const TextStyle(color: AppColors.textSecondary),
-                    );
-                  }
-                  final summary = _summarize(detections);
-                  return Column(
-                    children: summary
-                        .map(
-                          (item) => Card(
-                            child: ListTile(
-                              title: Text(item.label),
-                              subtitle: Text(
-                                l10n.confidenceValue(item.maxConfidence.toStringAsFixed(2)),
-                                style: const TextStyle(color: AppColors.textSecondary),
-                              ),
-                              trailing: Container(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: AppColors.surfaceAlt,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(l10n.itemCount(item.count)),
-                              ),
-                            ),
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
                           ),
-                        )
-                        .toList(),
-                  );
-                },
-              ),
-            const SizedBox(height: 20),
-            if (!_hasAnalysisStarted) ...<Widget>[
-              Row(
-                children: <Widget>[
-                  if (widget.showRetakeAction) ...<Widget>[
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _isAnalyzing
-                            ? null
-                            : () {
-                                Navigator.of(context).pop();
-                              },
-                        icon: const Icon(Icons.camera_alt_outlined),
-                        label: Text(l10n.retake),
+                        ),
+                        trailing: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceAlt,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(l10n.itemCount(item.count)),
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                  ],
-                  Expanded(
-                    flex: 2,
-                    child: ElevatedButton.icon(
-                      onPressed: _isAnalyzing ? null : _startDetection,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                      ),
-                      icon: _isAnalyzing
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.play_arrow_rounded),
-                      label: Text(_isAnalyzing ? l10n.starting : l10n.startProcessing),
-                    ),
-                  ),
-                ],
+                  )
+                  .toList(),
+            );
+          },
+        ),
+      const SizedBox(height: 20),
+      if (!_hasAnalysisStarted) ...<Widget>[
+        Row(
+          children: <Widget>[
+            if (widget.showRetakeAction) ...<Widget>[
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _isAnalyzing
+                      ? null
+                      : () {
+                          Navigator.of(context).pop();
+                        },
+                  icon: const Icon(Icons.camera_alt_outlined),
+                  label: Text(l10n.retake),
+                ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(width: 12),
             ],
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _isAnalyzing ||
-                            _isActionInProgress ||
-                            !_hasAnalysisStarted
-                        ? null
-                        : _saveResult,
-                    icon: _isActionInProgress
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.download),
-                    label: Text(_isActionInProgress ? l10n.processing : l10n.save),
-                  ),
+            Expanded(
+              flex: 2,
+              child: ElevatedButton.icon(
+                onPressed: _isAnalyzing ? null : _startDetection,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 2,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                    ),
-                    onPressed: _isAnalyzing ||
-                            _isActionInProgress ||
-                            !_hasAnalysisStarted
-                        ? null
-                        : _shareResult,
-                    icon: _isActionInProgress
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.ios_share),
-                    label: Text(_isActionInProgress ? l10n.processing : l10n.shareResult),
-                  ),
+                icon: _isAnalyzing
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.play_arrow_rounded),
+                label: Text(
+                  _isAnalyzing ? l10n.starting : l10n.startProcessing,
                 ),
-              ],
+              ),
             ),
           ],
         ),
+        const SizedBox(height: 12),
+      ],
+      Row(
+        children: <Widget>[
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed:
+                  _isAnalyzing || _isActionInProgress || !_hasAnalysisStarted
+                  ? null
+                  : _saveResult,
+              icon: _isActionInProgress
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.download),
+              label: Text(_isActionInProgress ? l10n.processing : l10n.save),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 2,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              onPressed:
+                  _isAnalyzing || _isActionInProgress || !_hasAnalysisStarted
+                  ? null
+                  : _shareResult,
+              icon: _isActionInProgress
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.ios_share),
+              label: Text(
+                _isActionInProgress ? l10n.processing : l10n.shareResult,
+              ),
+            ),
+          ),
+        ],
       ),
-    );
+    ];
   }
 
   Future<List<DetectedObject>> _resolveDetections() async {
@@ -652,10 +742,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
           subject: l10n.shareSubject,
         );
       } else {
-        await Share.share(
-          shareText,
-          subject: l10n.shareSubject,
-        );
+        await Share.share(shareText, subject: l10n.shareSubject);
       }
     } catch (_) {
       await Clipboard.setData(ClipboardData(text: shareText));
@@ -728,7 +815,10 @@ class _ResultsScreenState extends State<ResultsScreen> {
           const SizedBox(height: 8),
           Text(
             l10n.analysisSteps,
-            style: const TextStyle(color: AppColors.textSecondary, height: 1.35),
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              height: 1.35,
+            ),
           ),
         ],
       ),
@@ -739,7 +829,9 @@ class _ResultsScreenState extends State<ResultsScreen> {
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   String _buildReportText(List<DetectedObject> detections) {
@@ -871,7 +963,9 @@ class _DetectionPainter extends CustomPainter {
         detection.boundingBox.height * imageSize.height,
       );
       canvas.drawRRect(
-          RRect.fromRectAndRadius(rect, const Radius.circular(8)), boxPaint);
+        RRect.fromRectAndRadius(rect, const Radius.circular(8)),
+        boxPaint,
+      );
 
       // Label badge
       final labelText =
@@ -892,16 +986,24 @@ class _DetectionPainter extends CustomPainter {
       const padding = 4.0;
       final badgeWidth = textPainter.width + padding * 2;
       final badgeHeight = textPainter.height + padding * 2;
-      final badgeTop =
-          rect.top > badgeHeight ? rect.top - badgeHeight : rect.top;
-      final badgeRect = Rect.fromLTWH(rect.left, badgeTop, badgeWidth, badgeHeight);
+      final badgeTop = rect.top > badgeHeight
+          ? rect.top - badgeHeight
+          : rect.top;
+      final badgeRect = Rect.fromLTWH(
+        rect.left,
+        badgeTop,
+        badgeWidth,
+        badgeHeight,
+      );
 
       canvas.drawRRect(
         RRect.fromRectAndRadius(badgeRect, const Radius.circular(4)),
         Paint()..color = color,
       );
       textPainter.paint(
-          canvas, Offset(badgeRect.left + padding, badgeRect.top + padding));
+        canvas,
+        Offset(badgeRect.left + padding, badgeRect.top + padding),
+      );
     }
   }
 
@@ -911,4 +1013,3 @@ class _DetectionPainter extends CustomPainter {
         oldDelegate.imageAspectRatio != imageAspectRatio;
   }
 }
-

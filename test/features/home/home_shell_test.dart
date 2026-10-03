@@ -16,6 +16,7 @@ import 'package:mobile_yolo/features/home/home_shell.dart';
 import 'package:mobile_yolo/features/onboarding/onboarding_screen.dart';
 import 'package:mobile_yolo/l10n/generated/app_localizations.dart';
 import 'package:mobile_yolo/l10n/generated/app_localizations_en.dart';
+import '../../test_helpers/surface.dart';
 
 void main() {
   late Directory tmp;
@@ -67,22 +68,48 @@ void main() {
   }
 
   group('HomeShell', () {
-    testWidgets('has four tabs and no marketplace or profile by default',
-        (tester) async {
+    testWidgets('has four tabs and no marketplace or profile by default', (
+      tester,
+    ) async {
+      usePortraitSurface(tester);
       await tester.pumpWidget(wrap(const HomeShell(showMarketplace: false)));
 
       final bar = tester.widget<BottomNavigationBar>(
         find.byType(BottomNavigationBar),
       );
-      expect(
-        bar.items.map((i) => i.label),
-        <String?>[en.navHome, en.navCapture, en.navModels, en.navSettings],
-      );
+      expect(bar.items.map((i) => i.label), <String?>[
+        en.navHome,
+        en.navCapture,
+        en.navModels,
+        en.navSettings,
+      ]);
       expect(find.text(en.navMarketplace), findsNothing);
       expect(find.text(en.navProfile), findsNothing);
     });
 
+    testWidgets('landscape swaps the bottom bar for a side rail', (
+      tester,
+    ) async {
+      useLandscapeSurface(tester);
+      await tester.pumpWidget(wrap(const HomeShell(showMarketplace: false)));
+
+      expect(find.byType(BottomNavigationBar), findsNothing);
+      final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
+      expect(rail.destinations, hasLength(4));
+
+      await tester.tap(find.text(en.navModels));
+      await tester.pump();
+      expect(rail.selectedIndex, 0);
+      expect(
+        tester
+            .widget<NavigationRail>(find.byType(NavigationRail))
+            .selectedIndex,
+        2,
+      );
+    });
+
     testWidgets('the Models tab shows the model library', (tester) async {
+      usePortraitSurface(tester);
       await tester.pumpWidget(wrap(const HomeShell(showMarketplace: false)));
 
       await tester.tap(find.text(en.navModels));
@@ -92,8 +119,10 @@ void main() {
       expect(find.text(en.modelImportFromFile), findsOneWidget);
     });
 
-    testWidgets('the Settings tab links to detection classes for COCO models',
-        (tester) async {
+    testWidgets('the Settings tab links to detection classes for COCO models', (
+      tester,
+    ) async {
+      usePortraitSurface(tester);
       await tester.pumpWidget(wrap(const HomeShell(showMarketplace: false)));
 
       await tester.tap(find.text(en.navSettings));
@@ -102,28 +131,32 @@ void main() {
       expect(find.text(en.detectionPreferences), findsOneWidget);
     });
 
-    testWidgets('the dashboard opens class preferences, which return to Detect',
-        (tester) async {
-      await tester.pumpWidget(wrap(const HomeShell(showMarketplace: false)));
+    testWidgets(
+      'the dashboard opens class preferences, which return to Detect',
+      (tester) async {
+        usePortraitSurface(tester);
+        await tester.pumpWidget(wrap(const HomeShell(showMarketplace: false)));
 
-      await tester.tap(find.byIcon(Icons.settings_suggest_outlined));
-      await tester.pumpAndSettle();
-      expect(find.text(en.whatToDetect), findsOneWidget);
+        await tester.tap(find.byIcon(Icons.settings_suggest_outlined));
+        await tester.pumpAndSettle();
+        expect(find.text(en.whatToDetect), findsOneWidget);
 
-      await tester.tap(find.byIcon(Icons.camera_alt_outlined));
-      await tester.pumpAndSettle();
+        await tester.tap(find.byIcon(Icons.camera_alt_outlined));
+        await tester.pumpAndSettle();
 
-      // Back on the shell, with the Detect tab selected.
-      expect(find.text(en.whatToDetect), findsNothing);
-      final bar = tester.widget<BottomNavigationBar>(
-        find.byType(BottomNavigationBar),
-      );
-      expect(bar.currentIndex, 1);
-    });
+        // Back on the shell, with the Detect tab selected.
+        expect(find.text(en.whatToDetect), findsNothing);
+        final bar = tester.widget<BottomNavigationBar>(
+          find.byType(BottomNavigationBar),
+        );
+        expect(bar.currentIndex, 1);
+      },
+    );
   });
 
   group('AppHome', () {
     testWidgets('shows the introduction until it is dismissed', (tester) async {
+      usePortraitSurface(tester);
       await tester.pumpWidget(wrap(const AppHome(shell: Text('SHELL'))));
 
       expect(find.byType(OnboardingScreen), findsOneWidget);
@@ -140,6 +173,7 @@ void main() {
     });
 
     testWidgets('goes straight to the app once seen', (tester) async {
+      usePortraitSurface(tester);
       settings.markOnboardingSeen();
 
       await tester.pumpWidget(wrap(const AppHome(shell: Text('SHELL'))));

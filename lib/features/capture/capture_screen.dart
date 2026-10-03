@@ -17,6 +17,7 @@ import '../../core/services/device_capabilities.dart';
 import '../../core/services/model_library_service.dart';
 import '../../core/services/settings_controller.dart';
 import '../../core/theme/app_colors.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../results/results_screen.dart';
 import '../preferences/preferences_screen.dart';
 import '../settings/settings_screen.dart';
@@ -39,6 +40,10 @@ class _CaptureScreenState extends State<CaptureScreen> {
   Future<void>? _cameraInit;
   List<CameraDescription> _cameras = <CameraDescription>[];
   int _selectedCamera = 0;
+  double _zoom = 1;
+  double _zoomBase = 1;
+  double _minZoom = 1;
+  double _maxZoom = 1;
   bool _initializingCamera = false;
 
   // --- Live detection state ---
@@ -109,7 +114,14 @@ class _CaptureScreenState extends State<CaptureScreen> {
             ? ImageFormatGroup.yuv420
             : ImageFormatGroup.bgra8888,
       );
-      _cameraInit = _cameraController!.initialize();
+      _zoom = 1;
+      _minZoom = 1;
+      _maxZoom = 1;
+      final controller = _cameraController!;
+      _cameraInit = controller.initialize().then((_) async {
+        _minZoom = await controller.getMinZoomLevel();
+        _maxZoom = await controller.getMaxZoomLevel();
+      });
       _cameraInit?.ignore();
       if (mounted) setState(() {});
     } catch (_) {
@@ -169,9 +181,9 @@ class _CaptureScreenState extends State<CaptureScreen> {
       if (wasLive && mounted) _startLiveDetection();
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.photoCaptureFailed)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.photoCaptureFailed)));
     }
   }
 
@@ -398,409 +410,497 @@ class _CaptureScreenState extends State<CaptureScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: Stack(
-          children: <Widget>[
-            Column(
-              children: <Widget>[
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Stack(
-                      children: <Widget>[
-                        // Camera preview
-                        Positioned.fill(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(24),
-                            child: _cameraController == null
-                                ? const Center(
-                                    child: Icon(
-                                      Icons.camera_alt_outlined,
-                                      size: 64,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  )
-                                : FutureBuilder<void>(
-                                    future: _cameraInit,
-                                    builder: (context, snapshot) {
-                                      if (snapshot.connectionState ==
-                                          ConnectionState.done) {
-                                        if (snapshot.hasError) {
-                                          return _buildCameraError(
-                                              snapshot.error);
-                                        }
-                                        return _buildPreview(
-                                            _cameraController!);
-                                      }
-                                      return const Center(
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    },
-                                  ),
-                          ),
-                        ),
-
-                        // Back button
-                        Positioned(
-                          top: 20,
-                          left: 20,
-                          child: IconButton(
-                            onPressed: () {
-                              Navigator.of(context).maybePop();
-                            },
-                            icon: const Icon(Icons.arrow_back),
-                          ),
-                        ),
-
-                        // Settings button
-                        Positioned(
-                          top: 20,
-                          right: 20,
-                          child: IconButton(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => const SettingsScreen(),
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.settings),
-                          ),
-                        ),
-
-                        // Detection info badge
-                        Positioned(
-                          top: 72,
-                          left: 0,
-                          right: 0,
-                          child: Center(
-                            child: Consumer<SettingsController>(
-                              builder: (context, sc, _) {
-                                final labels = sc.selectedLabels.toList();
-                                final String badgeText;
-                                if (labels.isEmpty) {
-                                  badgeText = l10n.noClassesSelected;
-                                } else if (labels.length <= 3) {
-                                  badgeText = l10n.detectingLabels(
-                                    labels
-                                        .map((l) => l.toUpperCase())
-                                        .join(', '),
-                                  );
-                                } else {
-                                  final first = labels
-                                      .take(3)
-                                      .map((l) => l.toUpperCase())
-                                      .join(', ');
-                                  badgeText = l10n.detectingLabelsMore(
-                                    first,
-                                    labels.length - 3,
-                                  );
-                                }
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        Colors.black.withValues(alpha: 0.4),
-                                    borderRadius: BorderRadius.circular(999),
-                                  ),
-                                  child: Text(
-                                    badgeText,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                );
-                              },
+        child: OrientationBuilder(
+          builder: (context, orientation) {
+            final card = _buildPreviewCard(l10n);
+            final toggle = Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: _buildModeToggle(l10n),
+            );
+            if (orientation == Orientation.landscape) {
+              // Preview on the left, a narrow control strip on the right.
+              return Row(
+                children: <Widget>[
+                  Expanded(child: card),
+                  SizedBox(
+                    width: 250,
+                    child: Center(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            toggle,
+                            const SizedBox(height: 16),
+                            _buildShutterButton(l10n),
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: <Widget>[
+                                _buildGalleryButton(l10n),
+                                _buildFlipButton(l10n),
+                              ],
                             ),
-                          ),
-                        ),
-
-                        // Detection frame guide (only in capture mode)
-                        if (!_isLiveMode)
-                          Positioned(
-                            left: 40,
-                            right: 40,
-                            top: 140,
-                            bottom: 180,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                    color: AppColors.primary, width: 2),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                          ),
-
-                        // FPS counter (live mode)
-                        if (_isLiveMode)
-                          Positioned(
-                            bottom: 12,
-                            right: 12,
-                            child: FpsCounter(
-                              fps: _fps,
-                              inferenceMs: _inferenceMs,
-                            ),
-                          ),
-
-                        // Live detection count chip
-                        if (_isLiveMode && _liveDetections.isNotEmpty)
-                          Positioned(
-                            bottom: 12,
-                            left: 12,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.8),
-                                borderRadius: BorderRadius.circular(999),
-                              ),
-                              child: Text(
-                                l10n.objectsDetected(
-                                    _liveDetections.length),
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-
-                        // Low memory warning
-                        if (_checkedLowMemory &&
-                            _lowMemoryDevice &&
-                            !_isLiveMode)
-                          Positioned(
-                            bottom: 24,
-                            left: 24,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color:
-                                    AppColors.warning.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(999),
-                                border: Border.all(color: AppColors.warning),
-                              ),
-                              child: Text(
-                                l10n.lowMemoryMode,
-                                style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                // ─── Bottom controls ───────────────────────────────────
-
-                // Live / Capture mode toggle
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: _isLiveMode ? _toggleLiveMode : null,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              decoration: BoxDecoration(
-                                color: !_isLiveMode
-                                    ? AppColors.primary
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(999),
-                              ),
-                              child: Center(
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.photo_camera,
-                                      size: 16,
-                                      color: !_isLiveMode
-                                          ? Colors.white
-                                          : AppColors.textSecondary,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      l10n.captureMode,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: !_isLiveMode
-                                            ? Colors.white
-                                            : AppColors.textSecondary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: !_isLiveMode ? _toggleLiveMode : null,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              decoration: BoxDecoration(
-                                color: _isLiveMode
-                                    ? AppColors.accent
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(999),
-                              ),
-                              child: Center(
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.visibility,
-                                      size: 16,
-                                      color: _isLiveMode
-                                          ? Colors.white
-                                          : AppColors.textSecondary,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      l10n.liveMode,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: _isLiveMode
-                                            ? Colors.white
-                                            : AppColors.textSecondary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Bottom action row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    IconButton(
-                      onPressed: _pickFromGallery,
-                      tooltip: l10n.pickFromGallery,
-                      icon: const Icon(Icons.photo_library_outlined),
-                    ),
-                    Semantics(
-                      label: l10n.navCapture,
-                      button: true,
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: _capturePhoto,
-                          customBorder: const CircleBorder(),
-                          splashColor:
-                              AppColors.primary.withValues(alpha: 0.3),
-                          child: Container(
-                            width: 84,
-                            height: 84,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border:
-                                  Border.all(color: Colors.white, width: 4),
-                            ),
-                            child: Center(
-                              child: Container(
-                                width: 64,
-                                height: 64,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: _isLiveMode
-                                      ? AppColors.accent
-                                      : AppColors.primary,
-                                ),
-                                child: _isLiveMode
-                                    ? const Icon(Icons.photo_camera,
-                                        color: Colors.white, size: 28)
-                                    : null,
-                              ),
-                            ),
-                          ),
+                            _buildClassChip(l10n),
+                          ],
                         ),
                       ),
                     ),
+                  ),
+                ],
+              );
+            }
+            return Column(
+              children: <Widget>[
+                Expanded(child: card),
+                const SizedBox(height: 8),
+                toggle,
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    _buildGalleryButton(l10n),
+                    _buildShutterButton(l10n),
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
-                        IconButton(
-                          onPressed: _flipCamera,
-                          tooltip: l10n.flipCamera,
-                          icon: const Icon(Icons.cameraswitch),
-                        ),
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                builder: (_) => const PreferencesScreen(),
-                              ),
-                            ),
-                            borderRadius: BorderRadius.circular(999),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: AppColors.surface,
-                                borderRadius: BorderRadius.circular(999),
-                                border: Border.all(color: AppColors.border),
-                              ),
-                              child: Consumer<SettingsController>(
-                                builder: (context, sc, __) => Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: <Widget>[
-                                    Text(
-                                      l10n.classCount(
-                                          sc.selectedLabels.length),
-                                      style: const TextStyle(
-                                          fontSize: 10,
-                                          color: AppColors.accent,
-                                          fontWeight: FontWeight.w600),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    const Icon(Icons.chevron_right,
-                                        size: 14, color: AppColors.accent),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                        _buildFlipButton(l10n),
+                        _buildClassChip(l10n),
                       ],
                     ),
                   ],
                 ),
                 const SizedBox(height: 20),
               ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  /// The camera preview card with its overlays.
+  Widget _buildPreviewCard(AppLocalizations l10n) {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Stack(
+        children: <Widget>[
+          // Camera preview
+          Positioned.fill(
+            child: GestureDetector(
+              onScaleStart: (_) => _zoomBase = _zoom,
+              onScaleUpdate: (d) => _setZoom(_zoomBase * d.scale),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: _cameraController == null
+                    ? const Center(
+                        child: Icon(
+                          Icons.camera_alt_outlined,
+                          size: 64,
+                          color: AppColors.textSecondary,
+                        ),
+                      )
+                    : FutureBuilder<void>(
+                        future: _cameraInit,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.done) {
+                            if (snapshot.hasError) {
+                              return _buildCameraError(snapshot.error);
+                            }
+                            return _buildPreview(_cameraController!);
+                          }
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        },
+                      ),
+              ),
+            ),
+          ),
+
+          // Zoom indicator
+          if (_zoom > 1.05)
+            Positioned(
+              bottom: 12,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '${_zoom.toStringAsFixed(1)}x',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+          // Back button
+          Positioned(
+            top: 20,
+            left: 20,
+            child: IconButton(
+              onPressed: () {
+                Navigator.of(context).maybePop();
+              },
+              icon: const Icon(Icons.arrow_back),
+            ),
+          ),
+
+          // Settings button
+          Positioned(
+            top: 20,
+            right: 20,
+            child: IconButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const SettingsScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.settings),
+            ),
+          ),
+
+          // Detection info badge
+          Positioned(
+            top: 72,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Consumer<SettingsController>(
+                builder: (context, sc, _) {
+                  final labels = sc.selectedLabels.toList();
+                  final String badgeText;
+                  if (labels.isEmpty) {
+                    badgeText = l10n.noClassesSelected;
+                  } else if (labels.length <= 3) {
+                    badgeText = l10n.detectingLabels(
+                      labels.map((l) => l.toUpperCase()).join(', '),
+                    );
+                  } else {
+                    final first = labels
+                        .take(3)
+                        .map((l) => l.toUpperCase())
+                        .join(', ');
+                    badgeText = l10n.detectingLabelsMore(
+                      first,
+                      labels.length - 3,
+                    );
+                  }
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      badgeText,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+
+          // Detection frame guide (only in capture mode)
+          if (!_isLiveMode)
+            Positioned.fill(
+              child: FractionallySizedBox(
+                widthFactor: 0.8,
+                heightFactor: 0.55,
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.primary, width: 2),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              ),
+            ),
+
+          // FPS counter (live mode)
+          if (_isLiveMode)
+            Positioned(
+              bottom: 12,
+              right: 12,
+              child: FpsCounter(fps: _fps, inferenceMs: _inferenceMs),
+            ),
+
+          // Live detection count chip
+          if (_isLiveMode && _liveDetections.isNotEmpty)
+            Positioned(
+              bottom: 12,
+              left: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  l10n.objectsDetected(_liveDetections.length),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+
+          // Low memory warning
+          if (_checkedLowMemory && _lowMemoryDevice && !_isLiveMode)
+            Positioned(
+              bottom: 24,
+              left: 24,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: AppColors.warning),
+                ),
+                child: Text(
+                  l10n.lowMemoryMode,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Photo / live mode switch.
+  Widget _buildModeToggle(AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: _isLiveMode ? _toggleLiveMode : null,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: !_isLiveMode
+                        ? AppColors.primary
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.photo_camera,
+                          size: 16,
+                          color: !_isLiveMode
+                              ? Colors.white
+                              : AppColors.textSecondary,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          l10n.captureMode,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: !_isLiveMode
+                                ? Colors.white
+                                : AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: GestureDetector(
+                onTap: !_isLiveMode ? _toggleLiveMode : null,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: _isLiveMode ? AppColors.accent : Colors.transparent,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.visibility,
+                          size: 16,
+                          color: _isLiveMode
+                              ? Colors.white
+                              : AppColors.textSecondary,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          l10n.liveMode,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: _isLiveMode
+                                ? Colors.white
+                                : AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildGalleryButton(AppLocalizations l10n) {
+    return IconButton(
+      onPressed: _pickFromGallery,
+      tooltip: l10n.pickFromGallery,
+      icon: const Icon(Icons.photo_library_outlined),
+    );
+  }
+
+  Widget _buildShutterButton(AppLocalizations l10n) {
+    return Semantics(
+      label: l10n.navCapture,
+      button: true,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _capturePhoto,
+          customBorder: const CircleBorder(),
+          splashColor: AppColors.primary.withValues(alpha: 0.3),
+          child: Container(
+            width: 84,
+            height: 84,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 4),
+            ),
+            child: Center(
+              child: Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _isLiveMode ? AppColors.accent : AppColors.primary,
+                ),
+                child: _isLiveMode
+                    ? const Icon(
+                        Icons.photo_camera,
+                        color: Colors.white,
+                        size: 28,
+                      )
+                    : null,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFlipButton(AppLocalizations l10n) {
+    return IconButton(
+      onPressed: _flipCamera,
+      tooltip: l10n.flipCamera,
+      icon: const Icon(Icons.cameraswitch),
+    );
+  }
+
+  Widget _buildClassChip(AppLocalizations l10n) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const PreferencesScreen()),
+        ),
+        borderRadius: BorderRadius.circular(999),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Consumer<SettingsController>(
+            builder: (context, sc, __) => Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(
+                  l10n.classCount(sc.selectedLabels.length),
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: AppColors.accent,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Icon(
+                  Icons.chevron_right,
+                  size: 14,
+                  color: AppColors.accent,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Zooms the camera. Hardware zoom, so live frames and photos are both
+  /// zoomed and detection boxes stay aligned with the preview.
+  void _setZoom(double value) {
+    final controller = _cameraController;
+    if (controller == null || !controller.value.isInitialized) return;
+    final zoom = value.clamp(_minZoom, _maxZoom).toDouble();
+    if (zoom == _zoom) return;
+    setState(() => _zoom = zoom);
+    controller.setZoomLevel(zoom).catchError((_) {});
   }
 }

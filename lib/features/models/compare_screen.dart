@@ -30,12 +30,13 @@ class CompareSide {
 }
 
 /// Runs [model] on [image]; injectable so the screen can be tested.
-typedef CompareRunner = Future<CompareSide> Function({
-  required InstalledModel model,
-  required File image,
-  required AppSettings settings,
-  required Set<String> selectedLabels,
-});
+typedef CompareRunner =
+    Future<CompareSide> Function({
+      required InstalledModel model,
+      required File image,
+      required AppSettings settings,
+      required Set<String> selectedLabels,
+    });
 
 /// Loads [model] into a throw-away [DetectionService], runs it once and frees
 /// it, so comparing never disturbs the app's active model.
@@ -109,7 +110,9 @@ class _CompareScreenState extends State<CompareScreen> {
     final library = context.read<ModelLibraryService>();
     final models = library.models;
     _idA = library.activeModel.id;
-    _idB = models.firstWhere((m) => m.id != _idA, orElse: () => models.first).id;
+    _idB = models
+        .firstWhere((m) => m.id != _idA, orElse: () => models.first)
+        .id;
   }
 
   Future<void> _choose() async {
@@ -129,15 +132,12 @@ class _CompareScreenState extends State<CompareScreen> {
   void _resolveAspect(File file) {
     final stream = FileImage(file).resolve(ImageConfiguration.empty);
     late final ImageStreamListener listener;
-    listener = ImageStreamListener(
-      (info, _) {
-        stream.removeListener(listener);
-        if (mounted && _image == file) {
-          setState(() => _aspect = info.image.width / info.image.height);
-        }
-      },
-      onError: (_, __) => stream.removeListener(listener),
-    );
+    listener = ImageStreamListener((info, _) {
+      stream.removeListener(listener);
+      if (mounted && _image == file) {
+        setState(() => _aspect = info.image.width / info.image.height);
+      }
+    }, onError: (_, __) => stream.removeListener(listener));
     stream.addListener(listener);
   }
 
@@ -209,10 +209,10 @@ class _CompareScreenState extends State<CompareScreen> {
                     onChanged: _running
                         ? null
                         : (v) => setState(() {
-                              _idA = v;
-                              _resultA = null;
-                              _resultB = null;
-                            }),
+                            _idA = v;
+                            _resultA = null;
+                            _resultB = null;
+                          }),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -224,10 +224,10 @@ class _CompareScreenState extends State<CompareScreen> {
                     onChanged: _running
                         ? null
                         : (v) => setState(() {
-                              _idB = v;
-                              _resultA = null;
-                              _resultB = null;
-                            }),
+                            _idB = v;
+                            _resultA = null;
+                            _resultB = null;
+                          }),
                   ),
                 ),
               ],
@@ -237,7 +237,9 @@ class _CompareScreenState extends State<CompareScreen> {
               onPressed: _running ? null : _choose,
               icon: const Icon(Icons.photo_library_outlined),
               label: Text(
-                _image == null ? l10n.compareChooseImage : l10n.compareChangeImage,
+                _image == null
+                    ? l10n.compareChooseImage
+                    : l10n.compareChangeImage,
               ),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -357,18 +359,23 @@ class _ResultPane extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: AspectRatio(
             aspectRatio: aspect,
-            child: Stack(
-              fit: StackFit.expand,
-              children: <Widget>[
-                Image.file(image, fit: BoxFit.fill),
-                if (result != null && result.error == null)
-                  BoundingBoxOverlay(detections: result.detections),
-                if (waiting)
-                  const ColoredBox(
-                    color: Color(0x66000000),
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-              ],
+            // Pinch to zoom; the boxes share the image's layer.
+            child: InteractiveViewer(
+              minScale: 1,
+              maxScale: 6,
+              child: Stack(
+                fit: StackFit.expand,
+                children: <Widget>[
+                  Image.file(image, fit: BoxFit.fill),
+                  if (result != null && result.error == null)
+                    BoundingBoxOverlay(detections: result.detections),
+                  if (waiting)
+                    const ColoredBox(
+                      color: Color(0x66000000),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                ],
+              ),
             ),
           ),
         ),
@@ -380,7 +387,10 @@ class _ResultPane extends StatelessWidget {
                   style: const TextStyle(color: Colors.redAccent, fontSize: 12),
                 )
               : Text(
-                  l10n.compareResult(result.detections.length, result.inferenceMs),
+                  l10n.compareResult(
+                    result.detections.length,
+                    result.inferenceMs,
+                  ),
                   style: const TextStyle(color: AppColors.textSecondary),
                 ),
       ],

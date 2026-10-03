@@ -19,6 +19,7 @@ import 'package:mobile_yolo/core/services/model_library_service.dart';
 import 'package:mobile_yolo/core/services/settings_controller.dart';
 import 'package:mobile_yolo/features/results/results_screen.dart';
 import 'package:mobile_yolo/l10n/generated/app_localizations.dart';
+import '../../test_helpers/surface.dart';
 
 /// Detection service that skips the native interpreter.
 class FakeDetectionService extends DetectionService {
@@ -39,8 +40,7 @@ class FakeDetectionService extends DetectionService {
     required int maxDetections,
     required Set<String> selectedLabels,
     bool filterBySelectedLabels = true,
-  }) async =>
-      canned;
+  }) async => canned;
 
   @override
   int get lastInferenceMs => 33;
@@ -116,8 +116,10 @@ void main() {
     await tester.pump();
   }
 
-  testWidgets('no export menu before detection has produced a result',
-      (tester) async {
+  testWidgets('no export menu before detection has produced a result', (
+    tester,
+  ) async {
+    usePortraitSurface(tester);
     await tester.pumpWidget(app(<DetectedObject>[person], RecordingShare()));
 
     expect(find.byTooltip('Export'), findsNothing);
@@ -126,8 +128,10 @@ void main() {
     await finishDetection(tester);
   });
 
-  testWidgets('shares the detections as JSON with the model name',
-      (tester) async {
+  testWidgets('shares the detections as JSON with the model name', (
+    tester,
+  ) async {
+    usePortraitSurface(tester);
     final share = RecordingShare();
     await tester.pumpWidget(app(<DetectedObject>[person], share));
     await finishDetection(tester);
@@ -149,6 +153,7 @@ void main() {
   });
 
   testWidgets('shares the detections as CSV', (tester) async {
+    usePortraitSurface(tester);
     final share = RecordingShare();
     await tester.pumpWidget(app(<DetectedObject>[person], share));
     await finishDetection(tester);
@@ -167,6 +172,7 @@ void main() {
   });
 
   testWidgets('an empty result can still be exported', (tester) async {
+    usePortraitSurface(tester);
     final share = RecordingShare();
     await tester.pumpWidget(app(const <DetectedObject>[], share));
     await finishDetection(tester);
@@ -177,8 +183,37 @@ void main() {
     await tester.tap(find.text('Share as JSON'));
     await tester.pump();
 
-    final json = jsonDecode(utf8.decode(share.shared.single.bytes))
-        as Map<String, dynamic>;
+    final json =
+        jsonDecode(utf8.decode(share.shared.single.bytes))
+            as Map<String, dynamic>;
     expect(json['count'], 0);
+  });
+
+  group('zoom and orientation', () {
+    testWidgets('the photo can be pinch-zoomed in portrait', (tester) async {
+      usePortraitSurface(tester);
+      await tester.pumpWidget(app(<DetectedObject>[person], RecordingShare()));
+      await finishDetection(tester);
+
+      final viewer = tester.widget<InteractiveViewer>(
+        find.byType(InteractiveViewer),
+      );
+      expect(viewer.maxScale, greaterThan(1));
+      expect(find.text('Share as JSON'), findsNothing);
+    });
+
+    testWidgets('landscape keeps the photo and the summary side by side', (
+      tester,
+    ) async {
+      useLandscapeSurface(tester);
+      await tester.pumpWidget(app(<DetectedObject>[person], RecordingShare()));
+      await finishDetection(tester);
+
+      expect(find.byType(InteractiveViewer), findsOneWidget);
+      final photo = tester.getRect(find.byType(InteractiveViewer));
+      final summary = tester.getRect(find.text('Analysis Summary'));
+      expect(summary.left, greaterThanOrEqualTo(photo.right));
+      expect(tester.takeException(), isNull);
+    });
   });
 }
