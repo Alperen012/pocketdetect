@@ -13,15 +13,20 @@ void main() {
     });
 
     test('cpu runs on CPU only', () {
-      expect(delegateAttemptOrder(AcceleratorPreference.cpu),
-          <DelegateKind>[DelegateKind.cpu]);
+      expect(delegateAttemptOrder(AcceleratorPreference.cpu), <DelegateKind>[
+        DelegateKind.cpu,
+      ]);
     });
 
     test('an explicit accelerator still falls back to CPU', () {
-      expect(delegateAttemptOrder(AcceleratorPreference.gpu),
-          <DelegateKind>[DelegateKind.gpu, DelegateKind.cpu]);
-      expect(delegateAttemptOrder(AcceleratorPreference.nnapi),
-          <DelegateKind>[DelegateKind.nnapi, DelegateKind.cpu]);
+      expect(delegateAttemptOrder(AcceleratorPreference.gpu), <DelegateKind>[
+        DelegateKind.gpu,
+        DelegateKind.cpu,
+      ]);
+      expect(delegateAttemptOrder(AcceleratorPreference.nnapi), <DelegateKind>[
+        DelegateKind.nnapi,
+        DelegateKind.cpu,
+      ]);
     });
 
     test('every preference ends with CPU', () {

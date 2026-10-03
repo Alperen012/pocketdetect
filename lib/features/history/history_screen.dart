@@ -42,8 +42,11 @@ class HistoryScreen extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.history,
-                        size: 64, color: AppColors.textSecondary),
+                    const Icon(
+                      Icons.history,
+                      size: 64,
+                      color: AppColors.textSecondary,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       l10n.historyEmpty,
@@ -74,8 +77,9 @@ class HistoryScreen extends StatelessWidget {
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final entry = history.entries[index];
-              final dateStr =
-                  DateFormat('MMM d, yyyy • HH:mm').format(entry.timestamp);
+              final dateStr = DateFormat(
+                'MMM d, yyyy • HH:mm',
+              ).format(entry.timestamp);
               final imageFile = File(entry.imagePath);
               final imageExists = imageFile.existsSync();
 
@@ -89,20 +93,19 @@ class HistoryScreen extends StatelessWidget {
                     color: Colors.red.shade900,
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Icon(Icons.delete_outline,
-                      color: Colors.white),
+                  child: const Icon(Icons.delete_outline, color: Colors.white),
                 ),
                 onDismissed: (_) => history.removeEntry(entry.id),
                 child: GestureDetector(
                   onTap: imageExists
                       ? () => Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => ResultsScreen(
-                                imageFile: imageFile,
-                                autoStartProcessing: true,
-                              ),
+                          MaterialPageRoute<void>(
+                            builder: (_) => ResultsScreen(
+                              imageFile: imageFile,
+                              autoStartProcessing: true,
                             ),
-                          )
+                          ),
+                        )
                       : null,
                   child: Container(
                     padding: const EdgeInsets.all(12),
@@ -157,12 +160,14 @@ class HistoryScreen extends StatelessWidget {
                                 children: [
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 6, vertical: 2),
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: AppColors.primary
-                                          .withValues(alpha: 0.15),
-                                      borderRadius:
-                                          BorderRadius.circular(4),
+                                      color: AppColors.primary.withValues(
+                                        alpha: 0.15,
+                                      ),
+                                      borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
                                       entry.modelName,
@@ -176,7 +181,8 @@ class HistoryScreen extends StatelessWidget {
                                   const SizedBox(width: 8),
                                   Text(
                                     l10n.historyInferenceTime(
-                                        entry.inferenceMs),
+                                      entry.inferenceMs,
+                                    ),
                                     style: const TextStyle(
                                       fontSize: 10,
                                       color: AppColors.textSecondary,
@@ -187,8 +193,10 @@ class HistoryScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        const Icon(Icons.chevron_right,
-                            color: AppColors.textSecondary),
+                        const Icon(
+                          Icons.chevron_right,
+                          color: AppColors.textSecondary,
+                        ),
                       ],
                     ),
                   ),
@@ -201,8 +209,7 @@ class HistoryScreen extends StatelessWidget {
     );
   }
 
-  void _confirmClear(
-      BuildContext context, DetectionHistoryService history) {
+  void _confirmClear(BuildContext context, DetectionHistoryService history) {
     final l10n = context.l10n;
     showDialog<void>(
       context: context,
@@ -219,9 +226,7 @@ class HistoryScreen extends StatelessWidget {
               history.clearAll();
               Navigator.of(dialogContext).pop();
             },
-            style: FilledButton.styleFrom(
-              backgroundColor: Colors.red.shade700,
-            ),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red.shade700),
             child: Text(l10n.historyDelete),
           ),
         ],

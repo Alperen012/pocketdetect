@@ -38,6 +38,7 @@ class DetectionService extends ChangeNotifier {
   /// Delegates that were tried first but could not load, with the reason.
   Map<DelegateKind, Object> get delegateFailures =>
       Map<DelegateKind, Object>.unmodifiable(_delegateFailures);
+
   /// Wall-clock time of the last `interpreter.run()` call in milliseconds.
   int get lastInferenceMs => _lastInferenceMs;
 
@@ -57,7 +58,8 @@ class DetectionService extends ChangeNotifier {
       return;
     }
     final active = _activeModel;
-    final sameModel = active != null &&
+    final sameModel =
+        active != null &&
         active.id == model.id &&
         active.filePath == model.filePath;
     if (sameModel && isReady) {
@@ -274,7 +276,12 @@ class DetectionService extends ChangeNotifier {
           (raw) => DetectedObject(
             label: raw.label,
             confidence: raw.score,
-            boundingBox: Rect.fromLTWH(raw.left, raw.top, raw.width, raw.height),
+            boundingBox: Rect.fromLTWH(
+              raw.left,
+              raw.top,
+              raw.width,
+              raw.height,
+            ),
           ),
         )
         .toList();

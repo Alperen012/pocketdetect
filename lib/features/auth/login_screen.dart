@@ -168,9 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isLogin ? l10n.authSignIn : l10n.authSignUp),
-      ),
+      appBar: AppBar(title: Text(_isLogin ? l10n.authSignIn : l10n.authSignUp)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -192,8 +190,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   child: Column(
                     children: [
-                      const Icon(Icons.store_outlined,
-                          size: 48, color: Colors.white),
+                      const Icon(
+                        Icons.store_outlined,
+                        size: 48,
+                        color: Colors.white,
+                      ),
                       const SizedBox(height: 12),
                       Text(
                         l10n.authMarketplaceTitle,
@@ -227,8 +228,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.error_outline,
-                            color: Colors.redAccent, size: 18),
+                        const Icon(
+                          Icons.error_outline,
+                          color: Colors.redAccent,
+                          size: 18,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -302,8 +306,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         size: 20,
                       ),
                       onPressed: () {
-                        setState(
-                            () => _obscurePassword = !_obscurePassword);
+                        setState(() => _obscurePassword = !_obscurePassword);
                       },
                     ),
                   ),

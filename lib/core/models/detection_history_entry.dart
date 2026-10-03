@@ -26,36 +26,42 @@ class DetectionHistoryEntry {
   int get objectCount => detections.length;
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'imagePath': imagePath,
-        'detections': detections.map((d) => {
-          'label': d.label,
-          'confidence': d.confidence,
-          'left': d.boundingBox.left,
-          'top': d.boundingBox.top,
-          'width': d.boundingBox.width,
-          'height': d.boundingBox.height,
-        }).toList(),
-        'timestamp': timestamp.toIso8601String(),
-        'inferenceMs': inferenceMs,
-        'modelName': modelName,
-      };
+    'id': id,
+    'imagePath': imagePath,
+    'detections': detections
+        .map(
+          (d) => {
+            'label': d.label,
+            'confidence': d.confidence,
+            'left': d.boundingBox.left,
+            'top': d.boundingBox.top,
+            'width': d.boundingBox.width,
+            'height': d.boundingBox.height,
+          },
+        )
+        .toList(),
+    'timestamp': timestamp.toIso8601String(),
+    'inferenceMs': inferenceMs,
+    'modelName': modelName,
+  };
 
   factory DetectionHistoryEntry.fromJson(Map<String, dynamic> json) {
     return DetectionHistoryEntry(
       id: json['id'] as String,
       imagePath: json['imagePath'] as String,
       detections: (json['detections'] as List)
-          .map((d) => DetectedObject(
-                label: d['label'] as String,
-                confidence: (d['confidence'] as num).toDouble(),
-                boundingBox: Rect.fromLTWH(
-                  (d['left'] as num).toDouble(),
-                  (d['top'] as num).toDouble(),
-                  (d['width'] as num).toDouble(),
-                  (d['height'] as num).toDouble(),
-                ),
-              ))
+          .map(
+            (d) => DetectedObject(
+              label: d['label'] as String,
+              confidence: (d['confidence'] as num).toDouble(),
+              boundingBox: Rect.fromLTWH(
+                (d['left'] as num).toDouble(),
+                (d['top'] as num).toDouble(),
+                (d['width'] as num).toDouble(),
+                (d['height'] as num).toDouble(),
+              ),
+            ),
+          )
           .toList(),
       timestamp: DateTime.parse(json['timestamp'] as String),
       inferenceMs: json['inferenceMs'] as int,
@@ -71,8 +77,7 @@ class DetectionHistoryEntry {
   static List<DetectionHistoryEntry> decodeList(String source) {
     final list = jsonDecode(source) as List;
     return list
-        .map((e) =>
-            DetectionHistoryEntry.fromJson(e as Map<String, dynamic>))
+        .map((e) => DetectionHistoryEntry.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 }

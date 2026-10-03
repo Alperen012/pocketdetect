@@ -53,8 +53,7 @@ Future<ModelPackage> extractModelPackage(
 
     final files = archive.files.where(_isUsable).toList();
 
-    final models =
-        files.where((f) => _base(f).endsWith('.tflite')).toList();
+    final models = files.where((f) => _base(f).endsWith('.tflite')).toList();
     if (models.isEmpty) {
       throw const ModelPackageException(ModelPackageError.noModelFile);
     }

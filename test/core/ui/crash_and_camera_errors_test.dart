@@ -34,16 +34,23 @@ void main() {
         'CameraAccessDeniedWithoutPrompt',
         'CameraAccessRestricted',
       ]) {
-        expect(isCameraPermissionError(CameraException(code, 'x')), isTrue,
-            reason: code);
+        expect(
+          isCameraPermissionError(CameraException(code, 'x')),
+          isTrue,
+          reason: code,
+        );
       }
     });
 
     test('other camera errors are not permission errors', () {
-      expect(isCameraPermissionError(CameraException('cameraNotFound', 'x')),
-          isFalse);
-      expect(isCameraPermissionError(CameraException('AudioAccessDenied', 'x')),
-          isFalse);
+      expect(
+        isCameraPermissionError(CameraException('cameraNotFound', 'x')),
+        isFalse,
+      );
+      expect(
+        isCameraPermissionError(CameraException('AudioAccessDenied', 'x')),
+        isFalse,
+      );
     });
 
     test('non-camera errors and null are not permission errors', () {

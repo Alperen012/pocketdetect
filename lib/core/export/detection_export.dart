@@ -29,7 +29,10 @@ class DetectionExport {
   final int? imageHeight;
 
   bool get hasPixelSize =>
-      imageWidth != null && imageHeight != null && imageWidth! > 0 && imageHeight! > 0;
+      imageWidth != null &&
+      imageHeight != null &&
+      imageWidth! > 0 &&
+      imageHeight! > 0;
 }
 
 double _r(double v, [int places = 4]) {
@@ -49,10 +52,11 @@ String detectionsToJson(DetectionExport e) {
 
   final map = <String, dynamic>{
     'image': e.imageName,
-    if (e.hasPixelSize) 'imageSize': <String, int>{
-      'width': e.imageWidth!,
-      'height': e.imageHeight!,
-    },
+    if (e.hasPixelSize)
+      'imageSize': <String, int>{
+        'width': e.imageWidth!,
+        'height': e.imageHeight!,
+      },
     'model': e.modelName,
     'inferenceMs': e.inferenceMs,
     'timestamp': e.timestamp.toUtc().toIso8601String(),
@@ -125,7 +129,10 @@ String _csv(String value) {
     v = "'$v";
   }
   final needsQuotes =
-      v.contains(',') || v.contains('"') || v.contains('\n') || v.contains('\r');
+      v.contains(',') ||
+      v.contains('"') ||
+      v.contains('\n') ||
+      v.contains('\r');
   final escaped = v.replaceAll('"', '""');
   return needsQuotes ? '"$escaped"' : escaped;
 }
@@ -151,7 +158,11 @@ img.Image drawDetections(img.Image source, List<DetectedObject> detections) {
   for (var i = 0; i < detections.length; i++) {
     final d = detections[i];
     final rgb = _boxColors[i % _boxColors.length];
-    final color = img.ColorRgb8((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF);
+    final color = img.ColorRgb8(
+      (rgb >> 16) & 0xFF,
+      (rgb >> 8) & 0xFF,
+      rgb & 0xFF,
+    );
 
     final x1 = (d.boundingBox.left * image.width).round();
     final y1 = (d.boundingBox.top * image.height).round();
@@ -169,7 +180,9 @@ img.Image drawDetections(img.Image source, List<DetectedObject> detections) {
     );
 
     final label = '${d.label} ${(d.confidence * 100).round()}%';
-    final font = longest > 1400 ? img.arial48 : (longest > 700 ? img.arial24 : img.arial14);
+    final font = longest > 1400
+        ? img.arial48
+        : (longest > 700 ? img.arial24 : img.arial14);
     final textHeight = font.lineHeight + 4;
     final textWidth = label.length * (font.lineHeight * 0.6).round() + 8;
     final top = (y1 - textHeight) < 0 ? y1 : y1 - textHeight;

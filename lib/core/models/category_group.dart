@@ -68,7 +68,14 @@ const List<CategoryGroup> cocoGroups = <CategoryGroup>[
   CategoryGroup(
     id: 'clothing',
     label: 'Giyim & Aksesuar',
-    items: <String>['person', 'backpack', 'handbag', 'tie', 'suitcase', 'umbrella'],
+    items: <String>[
+      'person',
+      'backpack',
+      'handbag',
+      'tie',
+      'suitcase',
+      'umbrella',
+    ],
   ),
   CategoryGroup(
     id: 'sports',
@@ -89,7 +96,15 @@ const List<CategoryGroup> cocoGroups = <CategoryGroup>[
   CategoryGroup(
     id: 'kitchen',
     label: 'Mutfak & Sofra',
-    items: <String>['bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl'],
+    items: <String>[
+      'bottle',
+      'wine glass',
+      'cup',
+      'fork',
+      'knife',
+      'spoon',
+      'bowl',
+    ],
   ),
   CategoryGroup(
     id: 'food',

@@ -168,8 +168,9 @@ class _ModelTile extends StatelessWidget {
           ],
         ),
         onTap: isActive ? null : () => library.activate(model.id),
-        onLongPress:
-            model.isBuiltIn ? null : () => _confirmDelete(context, library),
+        onLongPress: model.isBuiltIn
+            ? null
+            : () => _confirmDelete(context, library),
       ),
     );
   }
@@ -281,7 +282,8 @@ class _UrlImportDialogState extends State<_UrlImportDialog> {
     final state = _url == null
         ? null
         : context.watch<DownloadManager>().getDownloadState(_url!);
-    final busy = state != null &&
+    final busy =
+        state != null &&
         (state.isDownloading || state.status == DownloadStatus.validating);
     final failure = state != null && state.isFailed;
 

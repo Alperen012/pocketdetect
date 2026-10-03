@@ -28,32 +28,32 @@ class FakeRecorder implements DownloadRecorder {
 }
 
 ModelValidationResult valid({int classes = 3}) => ModelValidationResult.success(
-      inputWidth: 640,
-      inputHeight: 640,
-      inputType: 'INT8',
-      outputShape: <int>[1, 4 + classes, 8400],
-      classCount: classes,
-    );
+  inputWidth: 640,
+  inputHeight: 640,
+  inputType: 'INT8',
+  outputShape: <int>[1, 4 + classes, 8400],
+  classCount: classes,
+);
 
 MarketplaceModel marketplaceModel() => MarketplaceModel(
-      id: 'mp-1',
-      userId: 'u1',
-      name: 'Helmets',
-      slug: 'helmets',
-      version: '2.0.0',
-      description: 'd',
-      fileUrl: 'https://example.com/helmets.tflite',
-      fileSizeBytes: 1024,
-      fileFormat: 'tflite',
-      licenseType: 'MIT',
-      isPublic: true,
-      status: 'active',
-      downloadCount: 0,
-      avgRating: 0,
-      reviewCount: 0,
-      createdAt: DateTime(2026),
-      updatedAt: DateTime(2026),
-    );
+  id: 'mp-1',
+  userId: 'u1',
+  name: 'Helmets',
+  slug: 'helmets',
+  version: '2.0.0',
+  description: 'd',
+  fileUrl: 'https://example.com/helmets.tflite',
+  fileSizeBytes: 1024,
+  fileFormat: 'tflite',
+  licenseType: 'MIT',
+  isPublic: true,
+  status: 'active',
+  downloadCount: 0,
+  avgRating: 0,
+  reviewCount: 0,
+  createdAt: DateTime(2026),
+  updatedAt: DateTime(2026),
+);
 
 void main() {
   late Directory tmp;
@@ -108,8 +108,9 @@ void main() {
     test('installs the model, names it from the URL and cleans up', () async {
       final dm = manager();
 
-      final model =
-          await dm.importFromUrl('https://example.com/models/vests.tflite');
+      final model = await dm.importFromUrl(
+        'https://example.com/models/vests.tflite',
+      );
 
       expect(model, isNotNull);
       expect(model!.name, 'vests');
@@ -183,25 +184,29 @@ void main() {
       expect(progress, containsAllInOrder(<double>[0.5, 1.0]));
     });
 
-    test('ignores a second request for a URL that is already downloading',
-        () async {
-      final gate = Completer<void>();
-      final dm = manager(
-        downloader: (url, savePath, {cancelToken, onProgress}) async {
-          await gate.future;
-          await File(savePath).writeAsBytes(<int>[1]);
-        },
-      );
+    test(
+      'ignores a second request for a URL that is already downloading',
+      () async {
+        final gate = Completer<void>();
+        final dm = manager(
+          downloader: (url, savePath, {cancelToken, onProgress}) async {
+            await gate.future;
+            await File(savePath).writeAsBytes(<int>[1]);
+          },
+        );
 
-      final first = dm.importFromUrl('https://example.com/slow.tflite');
-      await Future<void>.delayed(Duration.zero);
-      final second = await dm.importFromUrl('https://example.com/slow.tflite');
-      gate.complete();
+        final first = dm.importFromUrl('https://example.com/slow.tflite');
+        await Future<void>.delayed(Duration.zero);
+        final second = await dm.importFromUrl(
+          'https://example.com/slow.tflite',
+        );
+        gate.complete();
 
-      expect(second, isNull);
-      expect(await first, isNotNull);
-      expect(library.models, hasLength(2));
-    });
+        expect(second, isNull);
+        expect(await first, isNotNull);
+        expect(library.models, hasLength(2));
+      },
+    );
   });
 
   group('marketplace downloads', () {
@@ -243,20 +248,22 @@ void main() {
       expect(library.activeModel.marketplaceModelId, 'mp-1');
     });
 
-    test('deleteDownloadedModel removes it and falls back to built-in',
-        () async {
-      final dm = manager();
-      await dm.downloadModel(marketplaceModel());
-      await dm.activateModel('mp-1');
-      final path = dm.getLocalPath('mp-1')!;
+    test(
+      'deleteDownloadedModel removes it and falls back to built-in',
+      () async {
+        final dm = manager();
+        await dm.downloadModel(marketplaceModel());
+        await dm.activateModel('mp-1');
+        final path = dm.getLocalPath('mp-1')!;
 
-      await dm.deleteDownloadedModel('mp-1');
+        await dm.deleteDownloadedModel('mp-1');
 
-      expect(dm.isDownloaded('mp-1'), isFalse);
-      expect(dm.getDownloadState('mp-1'), isNull);
-      expect(library.activeModel.isBuiltIn, isTrue);
-      expect(File(path).existsSync(), isFalse);
-    });
+        expect(dm.isDownloaded('mp-1'), isFalse);
+        expect(dm.getDownloadState('mp-1'), isNull);
+        expect(library.activeModel.isBuiltIn, isTrue);
+        expect(File(path).existsSync(), isFalse);
+      },
+    );
 
     test('forwards library changes to its listeners', () async {
       final dm = manager();

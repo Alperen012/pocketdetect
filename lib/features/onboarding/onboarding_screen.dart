@@ -22,8 +22,11 @@ class OnboardingScreen extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(24, 40, 24, 16),
                 children: <Widget>[
-                  const Icon(Icons.center_focus_strong,
-                      size: 56, color: AppColors.accent),
+                  const Icon(
+                    Icons.center_focus_strong,
+                    size: 56,
+                    color: AppColors.accent,
+                  ),
                   const SizedBox(height: 20),
                   Text(
                     l10n.onboardingTitle,
@@ -103,7 +106,10 @@ class _Point extends StatelessWidget {
               children: <Widget>[
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(

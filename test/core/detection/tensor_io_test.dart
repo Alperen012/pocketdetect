@@ -26,7 +26,11 @@ List<double> legacyFloatFlat(Uint8List rgb, int w, int h) {
     h,
     (y) => List<List<double>>.generate(w, (x) {
       final idx = (y * w + x) * 3;
-      return <double>[rgb[idx] / 255.0, rgb[idx + 1] / 255.0, rgb[idx + 2] / 255.0];
+      return <double>[
+        rgb[idx] / 255.0,
+        rgb[idx + 1] / 255.0,
+        rgb[idx + 2] / 255.0,
+      ];
     }),
   );
   return nested.expand((r) => r).expand((p) => p).toList();
@@ -47,14 +51,16 @@ void main() {
       final rgb = sampleRgb(w, h);
       const scale = 1 / 255.0, zp = -128; // typical full-range int8 input
 
-      final bytes = buildInputBytes(InputBuildRequest(
-        rgbBytes: rgb,
-        width: w,
-        height: h,
-        isInt8: true,
-        scale: scale,
-        zeroPoint: zp,
-      ));
+      final bytes = buildInputBytes(
+        InputBuildRequest(
+          rgbBytes: rgb,
+          width: w,
+          height: h,
+          isInt8: true,
+          scale: scale,
+          zeroPoint: zp,
+        ),
+      );
 
       expect(bytes.length, w * h * 3);
       expect(
@@ -64,14 +70,16 @@ void main() {
     });
 
     test('int8 clamps values the legacy path would have wrapped', () {
-      final bytes = buildInputBytes(InputBuildRequest(
-        rgbBytes: Uint8List.fromList(<int>[0, 128, 255]),
-        width: 1,
-        height: 1,
-        isInt8: true,
-        scale: 0.5 / 255.0, // doubles the range: 255 -> 2*255 - 128 = 382
-        zeroPoint: -128,
-      ));
+      final bytes = buildInputBytes(
+        InputBuildRequest(
+          rgbBytes: Uint8List.fromList(<int>[0, 128, 255]),
+          width: 1,
+          height: 1,
+          isInt8: true,
+          scale: 0.5 / 255.0, // doubles the range: 255 -> 2*255 - 128 = 382
+          zeroPoint: -128,
+        ),
+      );
 
       final q = Int8List.sublistView(bytes).toList();
       expect(q.first, -128);
@@ -82,14 +90,16 @@ void main() {
       const w = 6, h = 3;
       final rgb = sampleRgb(w, h);
 
-      final bytes = buildInputBytes(InputBuildRequest(
-        rgbBytes: rgb,
-        width: w,
-        height: h,
-        isInt8: false,
-        scale: 1,
-        zeroPoint: 0,
-      ));
+      final bytes = buildInputBytes(
+        InputBuildRequest(
+          rgbBytes: rgb,
+          width: w,
+          height: h,
+          isInt8: false,
+          scale: 1,
+          zeroPoint: 0,
+        ),
+      );
 
       expect(bytes.length, w * h * 3 * 4);
       final values = bytes.buffer.asFloat32List();

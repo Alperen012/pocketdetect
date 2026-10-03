@@ -21,10 +21,10 @@ class ModelBenchmark {
 
   static const List<AcceleratorPreference> defaultAccelerators =
       <AcceleratorPreference>[
-    AcceleratorPreference.cpu,
-    AcceleratorPreference.gpu,
-    AcceleratorPreference.nnapi,
-  ];
+        AcceleratorPreference.cpu,
+        AcceleratorPreference.gpu,
+        AcceleratorPreference.nnapi,
+      ];
 
   static Future<BenchmarkReport> run(
     InstalledModel model, {
@@ -46,14 +46,16 @@ class ModelBenchmark {
     for (final pref in accelerators) {
       if (isCancelled?.call() ?? false) break;
       final label = pref.name.toUpperCase();
-      results.add(await _benchmarkOne(
-        model,
-        pref,
-        warmupRuns: warmupRuns,
-        measuredRuns: measuredRuns,
-        onStep: (phase) => step('$label · $phase'),
-        isCancelled: isCancelled,
-      ));
+      results.add(
+        await _benchmarkOne(
+          model,
+          pref,
+          warmupRuns: warmupRuns,
+          measuredRuns: measuredRuns,
+          onStep: (phase) => step('$label · $phase'),
+          isCancelled: isCancelled,
+        ),
+      );
       // Steps skipped by a load failure or cancel still count as progress.
       done = results.length * stepsPerAccelerator;
     }

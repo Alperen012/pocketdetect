@@ -24,17 +24,17 @@ class ModelValidationResult {
     required List<int> outputShape,
     required int classCount,
   }) : this._(
-          isValid: true,
-          inputWidth: inputWidth,
-          inputHeight: inputHeight,
-          inputType: inputType,
-          outputShape: outputShape,
-          classCount: classCount,
-        );
+         isValid: true,
+         inputWidth: inputWidth,
+         inputHeight: inputHeight,
+         inputType: inputType,
+         outputShape: outputShape,
+         classCount: classCount,
+       );
 
   /// An invalid model.
   const ModelValidationResult.failure(ModelValidationError code)
-      : this._(isValid: false, errorCode: code);
+    : this._(isValid: false, errorCode: code);
 
   final bool isValid;
   final int? inputWidth;
@@ -80,16 +80,13 @@ class ModelValidator {
 
       // Input: [1, H, W, 3]
       final inputShape = input.shape;
-      if (inputShape.length != 4 ||
-          inputShape[0] != 1 ||
-          inputShape[3] != 3) {
+      if (inputShape.length != 4 || inputShape[0] != 1 || inputShape[3] != 3) {
         return const ModelValidationResult.failure(
           ModelValidationError.unsupportedInputShape,
         );
       }
 
-      if (input.type != TensorType.int8 &&
-          input.type != TensorType.float32) {
+      if (input.type != TensorType.int8 && input.type != TensorType.float32) {
         return const ModelValidationResult.failure(
           ModelValidationError.unsupportedInputType,
         );
@@ -105,15 +102,13 @@ class ModelValidator {
         );
       }
 
-      if (output.type != TensorType.int8 &&
-          output.type != TensorType.float32) {
+      if (output.type != TensorType.int8 && output.type != TensorType.float32) {
         return const ModelValidationResult.failure(
           ModelValidationError.unsupportedOutputType,
         );
       }
 
-      final quantLabel =
-          input.type == TensorType.int8 ? 'INT8' : 'FLOAT32';
+      final quantLabel = input.type == TensorType.int8 ? 'INT8' : 'FLOAT32';
       final classCount = outputShape[1] - 4;
 
       return ModelValidationResult.success(
@@ -192,8 +187,4 @@ class LabelValidationResult {
   final LabelValidationError? errorCode;
 }
 
-enum LabelValidationError {
-  fileNotFound,
-  countMismatch,
-  readError,
-}
+enum LabelValidationError { fileNotFound, countMismatch, readError }

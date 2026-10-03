@@ -56,8 +56,5 @@ class LetterboxParams {
     return (width: width, height: height);
   }
   final scale = maxSide / longest;
-  return (
-    width: (width * scale).round(),
-    height: (height * scale).round(),
-  );
+  return (width: (width * scale).round(), height: (height * scale).round());
 }

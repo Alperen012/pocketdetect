@@ -27,9 +27,9 @@ class InstalledModel {
     this.marketplaceModelId,
     this.version,
   }) : assert(
-          (filePath == null) != (assetPath == null),
-          'Exactly one of filePath / assetPath must be set',
-        );
+         (filePath == null) != (assetPath == null),
+         'Exactly one of filePath / assetPath must be set',
+       );
 
   /// Id of the bundled model; always present in the library.
   static const String builtInId = 'builtin';
@@ -99,23 +99,23 @@ class InstalledModel {
   }
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'id': id,
-        'name': name,
-        'origin': origin.name,
-        'filePath': filePath,
-        'assetPath': assetPath,
-        'labels': labels,
-        'usesCocoLabels': usesCocoLabels,
-        'inputWidth': inputWidth,
-        'inputHeight': inputHeight,
-        'classCount': classCount,
-        'quantType': quantType,
-        'fileSizeBytes': fileSizeBytes,
-        'addedAt': addedAt.toUtc().toIso8601String(),
-        'sourceUrl': sourceUrl,
-        'marketplaceModelId': marketplaceModelId,
-        'version': version,
-      };
+    'id': id,
+    'name': name,
+    'origin': origin.name,
+    'filePath': filePath,
+    'assetPath': assetPath,
+    'labels': labels,
+    'usesCocoLabels': usesCocoLabels,
+    'inputWidth': inputWidth,
+    'inputHeight': inputHeight,
+    'classCount': classCount,
+    'quantType': quantType,
+    'fileSizeBytes': fileSizeBytes,
+    'addedAt': addedAt.toUtc().toIso8601String(),
+    'sourceUrl': sourceUrl,
+    'marketplaceModelId': marketplaceModelId,
+    'version': version,
+  };
 
   factory InstalledModel.fromJson(Map<String, dynamic> json) {
     final originName = json['origin'] as String?;

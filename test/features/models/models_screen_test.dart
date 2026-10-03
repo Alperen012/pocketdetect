@@ -78,8 +78,9 @@ void main() {
     );
   }
 
-  testWidgets('lists the built-in and imported models, built-in active',
-      (tester) async {
+  testWidgets('lists the built-in and imported models, built-in active', (
+    tester,
+  ) async {
     await tester.pumpWidget(app());
 
     expect(find.text('YOLO26 Nano (INT8)'), findsOneWidget);
@@ -97,8 +98,9 @@ void main() {
     expect(library.activeModel.id, imported.id);
   });
 
-  testWidgets('deleting asks for confirmation, then removes the model',
-      (tester) async {
+  testWidgets('deleting asks for confirmation, then removes the model', (
+    tester,
+  ) async {
     await tester.pumpWidget(app());
 
     await tester.tap(find.byType(PopupMenuButton<String>).last);
@@ -137,8 +139,9 @@ void main() {
     expect(find.text('Delete'), findsNothing);
   });
 
-  testWidgets('the menu offers a benchmark that opens its screen',
-      (tester) async {
+  testWidgets('the menu offers a benchmark that opens its screen', (
+    tester,
+  ) async {
     await tester.pumpWidget(app());
 
     await tester.tap(find.byType(PopupMenuButton<String>).first);
@@ -160,14 +163,18 @@ void main() {
     expect(find.text('Model B'), findsOneWidget);
   });
 
-  testWidgets('rejects a non-http URL without starting a download',
-      (tester) async {
+  testWidgets('rejects a non-http URL without starting a download', (
+    tester,
+  ) async {
     await tester.pumpWidget(app());
 
     await tester.scrollUntilVisible(find.text('Import from URL'), 100);
     await tester.tap(find.text('Import from URL'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'ftp://example.com/m.tflite');
+    await tester.enterText(
+      find.byType(TextField),
+      'ftp://example.com/m.tflite',
+    );
     await tester.tap(find.text('Download'));
     await tester.pumpAndSettle();
 

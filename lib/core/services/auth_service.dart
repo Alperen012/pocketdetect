@@ -24,8 +24,8 @@ class AuthService extends ChangeNotifier {
   PublisherProfile? get profile => _profile;
   bool get isAuthenticated => _currentUser != null;
   bool get isLoading => _isLoading;
-  bool get isEmailVerified =>
-      _currentUser?.emailConfirmedAt != null;
+  bool get isEmailVerified => _currentUser?.emailConfirmedAt != null;
+
   /// True when sign-up succeeded but email is not yet confirmed.
   bool get pendingEmailVerification => _pendingVerification;
 
@@ -158,9 +158,10 @@ class AuthService extends ChangeNotifier {
   /// Update the user's username.
   Future<void> updateUsername(String username) async {
     if (_currentUser == null) return;
-    await _client.from('profiles').update({
-      'username': username,
-    }).eq('id', _currentUser!.id);
+    await _client
+        .from('profiles')
+        .update({'username': username})
+        .eq('id', _currentUser!.id);
     await _loadProfile();
     notifyListeners();
   }

@@ -18,9 +18,11 @@ Widget buildTestApp(
   return MultiProvider(
     providers: [
       ChangeNotifierProvider<SettingsController>.value(
-          value: settingsController),
+        value: settingsController,
+      ),
       ChangeNotifierProvider<DetectionHistoryService>.value(
-          value: historyService),
+        value: historyService,
+      ),
     ],
     child: MaterialApp(
       supportedLocales: AppLocalizations.supportedLocales,
@@ -48,10 +50,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         buildTestApp(
-          HomeDashboardScreen(
-            onOpenCamera: () {},
-            onOpenPreferences: () {},
-          ),
+          HomeDashboardScreen(onOpenCamera: () {}, onOpenPreferences: () {}),
           settingsController,
           historyService,
         ),
@@ -115,10 +114,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         buildTestApp(
-          HomeDashboardScreen(
-            onOpenCamera: () {},
-            onOpenPreferences: () {},
-          ),
+          HomeDashboardScreen(onOpenCamera: () {}, onOpenPreferences: () {}),
           settingsController,
           historyService,
         ),

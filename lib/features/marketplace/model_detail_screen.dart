@@ -80,12 +80,13 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
       backgroundColor: AppColors.background,
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(color: AppColors.accent))
+              child: CircularProgressIndicator(color: AppColors.accent),
+            )
           : _error != null
-              ? _buildError()
-              : _model != null
-                  ? _buildContent()
-                  : const SizedBox.shrink(),
+          ? _buildError()
+          : _model != null
+          ? _buildContent()
+          : const SizedBox.shrink(),
     );
   }
 
@@ -94,8 +95,11 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.error_outline,
-              size: 48, color: AppColors.textSecondary),
+          const Icon(
+            Icons.error_outline,
+            size: 48,
+            color: AppColors.textSecondary,
+          ),
           const SizedBox(height: 12),
           Text(
             _error ?? 'Failed to load model',
@@ -105,8 +109,10 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
           const SizedBox(height: 16),
           TextButton(
             onPressed: _loadData,
-            child:
-                const Text('Retry', style: TextStyle(color: AppColors.accent)),
+            child: const Text(
+              'Retry',
+              style: TextStyle(color: AppColors.accent),
+            ),
           ),
         ],
       ),
@@ -143,8 +149,7 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
                     final svc = context.read<MarketplaceService>();
                     await svc.toggleFavorite(model.id);
                     setState(() {
-                      _model =
-                          model.copyWith(isFavorited: !model.isFavorited);
+                      _model = model.copyWith(isFavorited: !model.isFavorited);
                     });
                   },
                 );
@@ -218,32 +223,34 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
                     spacing: 6,
                     runSpacing: 6,
                     children: model.tags
-                        .map((tag) => Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(8),
+                        .map(
+                          (tag) => Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '#$tag',
+                              style: const TextStyle(
+                                color: AppColors.primary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
                               ),
-                              child: Text(
-                                '#$tag',
-                                style: const TextStyle(
-                                  color: AppColors.primary,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ))
+                            ),
+                          ),
+                        )
                         .toList(),
                   ),
                   const SizedBox(height: 16),
                 ],
                 // License + date
                 _infoRow('License', model.licenseType),
-                _infoRow(
-                    'Published', timeago.format(model.createdAt)),
-                _infoRow(
-                    'Updated', timeago.format(model.updatedAt)),
+                _infoRow('Published', timeago.format(model.createdAt)),
+                _infoRow('Updated', timeago.format(model.updatedAt)),
                 const SizedBox(height: 24),
                 // ─── Download / Activate button ──────────
                 _buildDownloadButton(model),
@@ -268,7 +275,11 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
               ? CachedNetworkImageProvider(model.publisherAvatarUrl!)
               : null,
           child: model.publisherAvatarUrl == null
-              ? const Icon(Icons.person, size: 18, color: AppColors.textSecondary)
+              ? const Icon(
+                  Icons.person,
+                  size: 18,
+                  color: AppColors.textSecondary,
+                )
               : null,
         ),
         const SizedBox(width: 8),
@@ -295,8 +306,11 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _statColumn(Icons.download_rounded, '${model.downloadCount}',
-              'Downloads'),
+          _statColumn(
+            Icons.download_rounded,
+            '${model.downloadCount}',
+            'Downloads',
+          ),
           Container(width: 1, height: 28, color: AppColors.border),
           _statColumn(
             Icons.star_rounded,
@@ -311,8 +325,12 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
     );
   }
 
-  Widget _statColumn(IconData icon, String value, String label,
-      {Color? iconColor}) {
+  Widget _statColumn(
+    IconData icon,
+    String value,
+    String label, {
+    Color? iconColor,
+  }) {
     return Column(
       children: [
         Icon(icon, size: 20, color: iconColor ?? AppColors.accent),
@@ -327,10 +345,7 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
         ),
         Text(
           label,
-          style: const TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 11,
-          ),
+          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
         ),
       ],
     );
@@ -413,8 +428,11 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: AppColors.border),
                   ),
-                  child: const Icon(Icons.delete_outline_rounded,
-                      color: Colors.redAccent, size: 22),
+                  child: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: Colors.redAccent,
+                    size: 22,
+                  ),
                 ),
               ),
             ],
@@ -479,13 +497,17 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: AppColors.accent),
+                      strokeWidth: 2,
+                      color: AppColors.accent,
+                    ),
                   ),
                   SizedBox(width: 10),
                   Text(
                     'Validating model...',
-                    style:
-                        TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 14,
+                    ),
                   ),
                 ],
               ),
@@ -514,7 +536,10 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
   }
 
   Widget _downloadButton(
-      MarketplaceModel model, DownloadManager dm, String label) {
+    MarketplaceModel model,
+    DownloadManager dm,
+    String label,
+  ) {
     return GestureDetector(
       onTap: () {
         dm.downloadModel(
@@ -533,8 +558,7 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.download_rounded,
-                  color: Colors.white, size: 20),
+              const Icon(Icons.download_rounded, color: Colors.white, size: 20),
               const SizedBox(width: 8),
               Text(
                 label,
@@ -556,8 +580,10 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text('Large File',
-            style: TextStyle(color: AppColors.textPrimary)),
+        title: const Text(
+          'Large File',
+          style: TextStyle(color: AppColors.textPrimary),
+        ),
         content: Text(
           'This model is ${model.fileSizeFormatted}. '
           'You are not on Wi-Fi. Continue anyway?',
@@ -566,8 +592,10 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child:
-                const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
           ),
           TextButton(
             onPressed: () {
@@ -575,8 +603,10 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
               // Force download regardless of connection
               dm.downloadModel(model);
             },
-            child: const Text('Download',
-                style: TextStyle(color: AppColors.accent)),
+            child: const Text(
+              'Download',
+              style: TextStyle(color: AppColors.accent),
+            ),
           ),
         ],
       ),
@@ -588,8 +618,10 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text('Delete Model',
-            style: TextStyle(color: AppColors.textPrimary)),
+        title: const Text(
+          'Delete Model',
+          style: TextStyle(color: AppColors.textPrimary),
+        ),
         content: Text(
           'Remove the downloaded file for ${model.name}?',
           style: const TextStyle(color: AppColors.textSecondary),
@@ -597,16 +629,20 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child:
-                const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
               context.read<DownloadManager>().deleteDownloadedModel(model.id);
             },
-            child: const Text('Delete',
-                style: TextStyle(color: Colors.redAccent)),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Colors.redAccent),
+            ),
           ),
         ],
       ),
@@ -648,8 +684,7 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
               return GestureDetector(
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute<void>(
-                      builder: (_) => const LoginScreen()),
+                  MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
                 ),
                 child: Container(
                   width: double.infinity,
@@ -683,10 +718,7 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
             child: Center(
               child: Text(
                 'No reviews yet. Be the first!',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
               ),
             ),
           )
@@ -741,12 +773,12 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
             child: GestureDetector(
               onTap: _isSubmitting ? null : () => _submitReview(model),
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
-                  color: _isSubmitting
-                      ? AppColors.border
-                      : AppColors.primary,
+                  color: _isSubmitting ? AppColors.border : AppColors.primary,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: _isSubmitting
@@ -754,7 +786,9 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white),
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Text(
                         'Submit',
@@ -828,8 +862,11 @@ class _ModelDetailScreenState extends State<ModelDetailScreen> {
                     ? CachedNetworkImageProvider(review.avatarUrl!)
                     : null,
                 child: review.avatarUrl == null
-                    ? const Icon(Icons.person,
-                        size: 14, color: AppColors.textSecondary)
+                    ? const Icon(
+                        Icons.person,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      )
                     : null,
               ),
               const SizedBox(width: 8),

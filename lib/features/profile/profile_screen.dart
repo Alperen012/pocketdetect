@@ -27,7 +27,10 @@ class ProfileScreen extends StatelessWidget {
     final coveredGroups = cocoGroups
         .where((group) => group.items.any(selected.contains))
         .length;
-    final totalLabels = cocoGroups.expand((group) => group.items).toSet().length;
+    final totalLabels = cocoGroups
+        .expand((group) => group.items)
+        .toSet()
+        .length;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.profile)),
@@ -117,12 +120,17 @@ class ProfileScreen extends StatelessWidget {
                 children: <Widget>[
                   Text(
                     l10n.detectionStatus,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   _StatusRow(
                     label: l10n.model,
-                    value: detectionService.isReady ? l10n.ready : l10n.notReady,
+                    value: detectionService.isReady
+                        ? l10n.ready
+                        : l10n.notReady,
                     isPositive: detectionService.isReady,
                     isDanger: !detectionService.isReady,
                   ),
@@ -138,7 +146,8 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   _StatusRow(
                     label: l10n.wizardSummaryInputSize,
-                    value: '${activeModel.inputWidth}×${activeModel.inputHeight}',
+                    value:
+                        '${activeModel.inputWidth}×${activeModel.inputHeight}',
                     isPositive: true,
                   ),
                   _StatusRow(
@@ -153,12 +162,15 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   _StatusRow(
                     label: l10n.resolution,
-                    value: settings.settings.resolutionProfile.localizedDisplayLabel(l10n),
+                    value: settings.settings.resolutionProfile
+                        .localizedDisplayLabel(l10n),
                     isPositive: true,
                   ),
                   _StatusRow(
                     label: l10n.nms,
-                    value: settings.settings.useNms ? l10n.statusOn : l10n.statusOff,
+                    value: settings.settings.useNms
+                        ? l10n.statusOn
+                        : l10n.statusOff,
                     isPositive: settings.settings.useNms,
                   ),
                   if (detectionService.error != null)
@@ -175,16 +187,20 @@ class ProfileScreen extends StatelessWidget {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            const Icon(Icons.error_outline,
-                                color: Colors.redAccent, size: 18),
+                            const Icon(
+                              Icons.error_outline,
+                              color: Colors.redAccent,
+                              size: 18,
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 detectionService.error!,
                                 style: const TextStyle(
-                                    color: Colors.redAccent,
-                                    fontSize: 13,
-                                    height: 1.4),
+                                  color: Colors.redAccent,
+                                  fontSize: 13,
+                                  height: 1.4,
+                                ),
                               ),
                             ),
                           ],
@@ -207,7 +223,10 @@ class ProfileScreen extends StatelessWidget {
                 children: <Widget>[
                   Text(
                     l10n.quickActions,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   SizedBox(
@@ -260,7 +279,8 @@ class ProfileScreen extends StatelessWidget {
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute<void>(
-                          builder: (_) => const LoginScreen()),
+                        builder: (_) => const LoginScreen(),
+                      ),
                     ),
                     child: Container(
                       padding: const EdgeInsets.all(16),
@@ -271,8 +291,11 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.store_outlined,
-                              color: AppColors.accent, size: 24),
+                          const Icon(
+                            Icons.store_outlined,
+                            color: AppColors.accent,
+                            size: 24,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
@@ -297,8 +320,10 @@ class ProfileScreen extends StatelessWidget {
                               ],
                             ),
                           ),
-                          Icon(Icons.chevron_right_rounded,
-                              color: AppColors.textSecondary),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            color: AppColors.textSecondary,
+                          ),
                         ],
                       ),
                     ),
@@ -318,8 +343,11 @@ class ProfileScreen extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.store_outlined,
-                              color: AppColors.accent, size: 20),
+                          const Icon(
+                            Icons.store_outlined,
+                            color: AppColors.accent,
+                            size: 20,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             l10n.profileMarketplaceAccount,
@@ -343,9 +371,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        profile?.displayName ??
-                            profile?.username ??
-                            'User',
+                        profile?.displayName ?? profile?.username ?? 'User',
                         style: const TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 14,
@@ -384,8 +410,11 @@ class ProfileScreen extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.download_done_rounded,
-                              color: AppColors.accent, size: 20),
+                          const Icon(
+                            Icons.download_done_rounded,
+                            color: AppColors.accent,
+                            size: 20,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             l10n.profileDownloadedModels,
@@ -405,63 +434,68 @@ class ProfileScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 10),
-                      ...downloaded.map((meta) => Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.model_training,
-                                    color: AppColors.textSecondary, size: 18),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        meta.version == null
-                                            ? meta.name
-                                            : '${meta.name} v${meta.version}',
-                                        style: const TextStyle(
-                                          color: AppColors.textPrimary,
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      Text(
-                                        '${meta.inputWidth}×${meta.inputHeight} · ${meta.classCount} classes · ${meta.quantType}',
-                                        style: const TextStyle(
-                                          color: AppColors.textSecondary,
-                                          fontSize: 11,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () =>
-                                      library.activate(meta.id),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 5),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.accent
-                                          .withValues(alpha: 0.15),
-                                      borderRadius:
-                                          BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      l10n.profileActivate,
-                                      style: TextStyle(
-                                        color: AppColors.accent,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
+                      ...downloaded.map(
+                        (meta) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.model_training,
+                                color: AppColors.textSecondary,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      meta.version == null
+                                          ? meta.name
+                                          : '${meta.name} v${meta.version}',
+                                      style: const TextStyle(
+                                        color: AppColors.textPrimary,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
+                                    Text(
+                                      '${meta.inputWidth}×${meta.inputHeight} · ${meta.classCount} classes · ${meta.quantType}',
+                                      style: const TextStyle(
+                                        color: AppColors.textSecondary,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () => library.activate(meta.id),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.accent.withValues(
+                                      alpha: 0.15,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    l10n.profileActivate,
+                                    style: TextStyle(
+                                      color: AppColors.accent,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ),
-                              ],
-                            ),
-                          )),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 );
@@ -501,9 +535,9 @@ class ProfileScreen extends StatelessWidget {
       if (!context.mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.settingsResetSuccess)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.settingsResetSuccess)));
     }
   }
 }
@@ -582,10 +616,7 @@ class _StatusRow extends StatelessWidget {
         ),
         child: Text(
           value,
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            color: textColor,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w600, color: textColor),
         ),
       ),
     );

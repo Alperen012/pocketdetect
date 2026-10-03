@@ -97,14 +97,11 @@ class ModelLibraryService extends ChangeNotifier {
   String _activeId;
 
   /// Bundled model first, then imported models in the order they were added.
-  List<InstalledModel> get models =>
-      List<InstalledModel>.unmodifiable(<InstalledModel>[
-        InstalledModel.builtIn,
-        ..._imported,
-      ]);
+  List<InstalledModel> get models => List<InstalledModel>.unmodifiable(
+    <InstalledModel>[InstalledModel.builtIn, ..._imported],
+  );
 
-  InstalledModel get activeModel =>
-      byId(_activeId) ?? InstalledModel.builtIn;
+  InstalledModel get activeModel => byId(_activeId) ?? InstalledModel.builtIn;
 
   InstalledModel? byId(String id) {
     if (id == InstalledModel.builtInId) return InstalledModel.builtIn;
@@ -170,8 +167,8 @@ class ModelLibraryService extends ChangeNotifier {
       labels: hasLabels
           ? List<String>.unmodifiable(labels)
           : usesCocoLabels
-              ? const <String>[]
-              : List<String>.generate(classCount, (i) => 'class_$i'),
+          ? const <String>[]
+          : List<String>.generate(classCount, (i) => 'class_$i'),
       usesCocoLabels: !hasLabels && usesCocoLabels,
       inputWidth: validation.inputWidth!,
       inputHeight: validation.inputHeight!,
@@ -274,7 +271,8 @@ class ModelLibraryService extends ChangeNotifier {
         usesCocoLabels: labels.isEmpty,
         inputWidth: _prefs.getInt(_legacyWidth) ?? 640,
         inputHeight: _prefs.getInt(_legacyHeight) ?? 640,
-        classCount: _prefs.getInt(_legacyClasses) ??
+        classCount:
+            _prefs.getInt(_legacyClasses) ??
             (labels.isNotEmpty ? labels.length : 80),
         quantType: _prefs.getString(_legacyQuant) ?? 'FLOAT32',
         fileSizeBytes: File(path).lengthSync(),

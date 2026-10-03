@@ -32,10 +32,7 @@ void main() {
         {'tag': 'object-detection'},
         {'tag': 'yolo'},
       ],
-      'profiles': {
-        'username': 'test_publisher',
-        'avatar_url': null,
-      },
+      'profiles': {'username': 'test_publisher', 'avatar_url': null},
     };
   }
 
@@ -91,16 +88,12 @@ void main() {
     });
 
     test('fileSizeFormatted returns bytes for small files', () {
-      final model = MarketplaceModel.fromJson(
-        sampleJson(fileSizeBytes: 512),
-      );
+      final model = MarketplaceModel.fromJson(sampleJson(fileSizeBytes: 512));
       expect(model.fileSizeFormatted, '512 B');
     });
 
     test('fileSizeFormatted returns KB for medium files', () {
-      final model = MarketplaceModel.fromJson(
-        sampleJson(fileSizeBytes: 2048),
-      );
+      final model = MarketplaceModel.fromJson(sampleJson(fileSizeBytes: 2048));
       expect(model.fileSizeFormatted, '2.0 KB');
     });
 

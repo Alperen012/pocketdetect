@@ -56,10 +56,7 @@ void main() {
     );
   }
 
-  Widget app({
-    required CompareRunner runner,
-    Future<File?> Function()? pick,
-  }) {
+  Widget app({required CompareRunner runner, Future<File?> Function()? pick}) {
     return MultiProvider(
       providers: <ChangeNotifierProvider<ChangeNotifier>>[
         ChangeNotifierProvider<ModelLibraryService>.value(value: library),
@@ -79,16 +76,24 @@ void main() {
 
   // ElevatedButton.icon builds a private subclass, so match by subtype.
   Finder compareButton() => find.ancestor(
-        of: find.text('Compare'),
-        matching: find.bySubtype<ElevatedButton>(),
-      );
+    of: find.text('Compare'),
+    matching: find.bySubtype<ElevatedButton>(),
+  );
 
-  testWidgets('with a single model it explains and cannot compare',
-      (tester) async {
-    await tester.pumpWidget(app(
-      runner: ({required model, required image, required settings, required selectedLabels}) async =>
-          CompareSide(model: model),
-    ));
+  testWidgets('with a single model it explains and cannot compare', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      app(
+        runner:
+            ({
+              required model,
+              required image,
+              required settings,
+              required selectedLabels,
+            }) async => CompareSide(model: model),
+      ),
+    );
 
     expect(
       find.text('Import a second model to compare two models side by side.'),
@@ -97,13 +102,22 @@ void main() {
     expect(tester.widget<ElevatedButton>(compareButton()).onPressed, isNull);
   });
 
-  testWidgets('compare stays disabled until an image is chosen', (tester) async {
+  testWidgets('compare stays disabled until an image is chosen', (
+    tester,
+  ) async {
     // Real file I/O must run outside the test's fake-async zone.
     await tester.runAsync(addSecondModel);
-    await tester.pumpWidget(app(
-      runner: ({required model, required image, required settings, required selectedLabels}) async =>
-          CompareSide(model: model),
-    ));
+    await tester.pumpWidget(
+      app(
+        runner:
+            ({
+              required model,
+              required image,
+              required settings,
+              required selectedLabels,
+            }) async => CompareSide(model: model),
+      ),
+    );
 
     expect(tester.widget<ElevatedButton>(compareButton()).onPressed, isNull);
 
@@ -114,60 +128,78 @@ void main() {
     expect(find.text('Change image'), findsOneWidget);
   });
 
-  testWidgets('runs the active model then the other one and shows both results',
-      (tester) async {
+  testWidgets(
+    'runs the active model then the other one and shows both results',
+    (tester) async {
+      // Real file I/O must run outside the test's fake-async zone.
+      await tester.runAsync(addSecondModel);
+      final calls = <String>[];
+
+      await tester.pumpWidget(
+        app(
+          runner:
+              ({
+                required model,
+                required image,
+                required settings,
+                required selectedLabels,
+              }) async {
+                calls.add(model.name);
+                expect(image.path, picture.path);
+                expect(settings, isA<AppSettings>());
+                return model.isBuiltIn
+                    ? CompareSide(
+                        model: model,
+                        inferenceMs: 30,
+                        detections: <DetectedObject>[
+                          const DetectedObject(
+                            label: 'person',
+                            confidence: 0.9,
+                            boundingBox: Rect.fromLTWH(0.1, 0.1, 0.4, 0.4),
+                          ),
+                          const DetectedObject(
+                            label: 'dog',
+                            confidence: 0.8,
+                            boundingBox: Rect.fromLTWH(0.5, 0.5, 0.4, 0.4),
+                          ),
+                        ],
+                      )
+                    : CompareSide(model: model, inferenceMs: 55);
+              },
+        ),
+      );
+
+      await tester.tap(find.text('Choose image'));
+      await tester.pump();
+      await tester.tap(compareButton());
+      await tester.pump();
+      await tester.pump();
+
+      expect(calls, <String>['YOLO26 Nano (INT8)', 'helmets']);
+      expect(find.text('2 objects · 30 ms'), findsOneWidget);
+      expect(find.text('0 objects · 55 ms'), findsOneWidget);
+    },
+  );
+
+  testWidgets('a model that fails does not hide the other result', (
+    tester,
+  ) async {
     // Real file I/O must run outside the test's fake-async zone.
     await tester.runAsync(addSecondModel);
-    final calls = <String>[];
 
-    await tester.pumpWidget(app(
-      runner: ({required model, required image, required settings, required selectedLabels}) async {
-        calls.add(model.name);
-        expect(image.path, picture.path);
-        expect(settings, isA<AppSettings>());
-        return model.isBuiltIn
-            ? CompareSide(
-                model: model,
-                inferenceMs: 30,
-                detections: <DetectedObject>[
-                  const DetectedObject(
-                    label: 'person',
-                    confidence: 0.9,
-                    boundingBox: Rect.fromLTWH(0.1, 0.1, 0.4, 0.4),
-                  ),
-                  const DetectedObject(
-                    label: 'dog',
-                    confidence: 0.8,
-                    boundingBox: Rect.fromLTWH(0.5, 0.5, 0.4, 0.4),
-                  ),
-                ],
-              )
-            : CompareSide(model: model, inferenceMs: 55);
-      },
-    ));
-
-    await tester.tap(find.text('Choose image'));
-    await tester.pump();
-    await tester.tap(compareButton());
-    await tester.pump();
-    await tester.pump();
-
-    expect(calls, <String>['YOLO26 Nano (INT8)', 'helmets']);
-    expect(find.text('2 objects · 30 ms'), findsOneWidget);
-    expect(find.text('0 objects · 55 ms'), findsOneWidget);
-  });
-
-  testWidgets('a model that fails does not hide the other result',
-      (tester) async {
-    // Real file I/O must run outside the test's fake-async zone.
-    await tester.runAsync(addSecondModel);
-
-    await tester.pumpWidget(app(
-      runner: ({required model, required image, required settings, required selectedLabels}) async =>
-          model.isBuiltIn
-              ? CompareSide(model: model, inferenceMs: 20)
-              : CompareSide(model: model, error: 'bad tensor'),
-    ));
+    await tester.pumpWidget(
+      app(
+        runner:
+            ({
+              required model,
+              required image,
+              required settings,
+              required selectedLabels,
+            }) async => model.isBuiltIn
+            ? CompareSide(model: model, inferenceMs: 20)
+            : CompareSide(model: model, error: 'bad tensor'),
+      ),
+    );
 
     await tester.tap(find.text('Choose image'));
     await tester.pump();

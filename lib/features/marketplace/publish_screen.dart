@@ -201,8 +201,11 @@ class _PublishScreenState extends State<PublishScreen> {
                       ? const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.image_rounded,
-                                color: AppColors.textSecondary, size: 28),
+                            Icon(
+                              Icons.image_rounded,
+                              color: AppColors.textSecondary,
+                              size: 28,
+                            ),
                             SizedBox(height: 4),
                             Text(
                               'Add image',
@@ -234,12 +237,11 @@ class _PublishScreenState extends State<PublishScreen> {
                     isExpanded: true,
                     dropdownColor: AppColors.surface,
                     style: const TextStyle(
-                        color: AppColors.textPrimary, fontSize: 14),
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                    ),
                     items: _licenseOptions
-                        .map((l) => DropdownMenuItem(
-                              value: l,
-                              child: Text(l),
-                            ))
+                        .map((l) => DropdownMenuItem(value: l, child: Text(l)))
                         .toList(),
                     onChanged: (v) {
                       if (v != null) setState(() => _licenseType = v);
@@ -269,7 +271,9 @@ class _PublishScreenState extends State<PublishScreen> {
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 7),
+                        horizontal: 12,
+                        vertical: 7,
+                      ),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? AppColors.accent.withValues(alpha: 0.15)
@@ -307,8 +311,10 @@ class _PublishScreenState extends State<PublishScreen> {
                   ),
                   child: Text(
                     _publishError!,
-                    style:
-                        const TextStyle(color: Colors.redAccent, fontSize: 13),
+                    style: const TextStyle(
+                      color: Colors.redAccent,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -321,9 +327,7 @@ class _PublishScreenState extends State<PublishScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   decoration: BoxDecoration(
-                    color: _isPublishing
-                        ? AppColors.border
-                        : AppColors.primary,
+                    color: _isPublishing ? AppColors.border : AppColors.primary,
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Center(
@@ -332,7 +336,9 @@ class _PublishScreenState extends State<PublishScreen> {
                             width: 22,
                             height: 22,
                             child: CircularProgressIndicator(
-                                strokeWidth: 2.5, color: Colors.white),
+                              strokeWidth: 2.5,
+                              color: Colors.white,
+                            ),
                           )
                         : const Text(
                             'Publish Model',
@@ -392,8 +398,10 @@ class _PublishScreenState extends State<PublishScreen> {
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: AppColors.primary),
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 12,
+        ),
       ),
     );
   }
@@ -418,8 +426,9 @@ class _PublishScreenState extends State<PublishScreen> {
     // Validate the model file
     final validation = await ModelValidator.validate(path);
     if (!validation.isValid) {
-      setState(() => _publishError =
-          'Invalid model: ${validation.errorCode?.name}');
+      setState(
+        () => _publishError = 'Invalid model: ${validation.errorCode?.name}',
+      );
       return;
     }
 

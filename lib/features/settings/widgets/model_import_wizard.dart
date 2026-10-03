@@ -130,10 +130,11 @@ class _ModelImportWizardState extends State<ModelImportWizard> {
             Expanded(
               child: ListView(
                 controller: scrollController,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                children: [
-                  _buildStepContent(context),
-                ],
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
+                children: [_buildStepContent(context)],
               ),
             ),
             _buildBottomBar(context),
@@ -174,13 +175,20 @@ class _ModelImportWizardState extends State<ModelImportWizard> {
                 color: AppColors.primary.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.info_outline, color: AppColors.accent, size: 28),
+              child: const Icon(
+                Icons.info_outline,
+                color: AppColors.accent,
+                size: 28,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 l10n.formatRequirementsTitle,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ],
@@ -195,18 +203,9 @@ class _ModelImportWizardState extends State<ModelImportWizard> {
           icon: Icons.file_present_outlined,
           text: l10n.formatReqTflite,
         ),
-        _RequirementTile(
-          icon: Icons.input,
-          text: l10n.formatReqInput,
-        ),
-        _RequirementTile(
-          icon: Icons.output,
-          text: l10n.formatReqOutput,
-        ),
-        _RequirementTile(
-          icon: Icons.label_outline,
-          text: l10n.formatReqLabels,
-        ),
+        _RequirementTile(icon: Icons.input, text: l10n.formatReqInput),
+        _RequirementTile(icon: Icons.output, text: l10n.formatReqOutput),
+        _RequirementTile(icon: Icons.label_outline, text: l10n.formatReqLabels),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(12),
@@ -218,14 +217,20 @@ class _ModelImportWizardState extends State<ModelImportWizard> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.warning_amber_rounded,
-                  color: AppColors.warning, size: 20),
+              const Icon(
+                Icons.warning_amber_rounded,
+                color: AppColors.warning,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   l10n.formatReqLabelsNote,
                   style: const TextStyle(
-                      color: AppColors.warning, fontSize: 13, height: 1.4),
+                    color: AppColors.warning,
+                    fontSize: 13,
+                    height: 1.4,
+                  ),
                 ),
               ),
             ],
@@ -300,7 +305,10 @@ class _ModelImportWizardState extends State<ModelImportWizard> {
             const SizedBox(height: 8),
             Text(
               p.basename(_pickedModelPath!),
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+              ),
             ),
           ],
         ],
@@ -365,7 +373,10 @@ class _ModelImportWizardState extends State<ModelImportWizard> {
 
     final temp = await getTemporaryDirectory();
     final outDir = Directory(
-      p.join(temp.path, 'model_import_${DateTime.now().microsecondsSinceEpoch}'),
+      p.join(
+        temp.path,
+        'model_import_${DateTime.now().microsecondsSinceEpoch}',
+      ),
     );
     _tempDirs.add(outDir);
 
@@ -469,7 +480,9 @@ class _ModelImportWizardState extends State<ModelImportWizard> {
               _useCocoLabels
                   ? Icons.radio_button_checked
                   : Icons.radio_button_unchecked,
-              color: _useCocoLabels ? AppColors.accent : AppColors.textSecondary,
+              color: _useCocoLabels
+                  ? AppColors.accent
+                  : AppColors.textSecondary,
             ),
             label: Text(l10n.wizardUseCocoLabels),
           ),
@@ -492,7 +505,10 @@ class _ModelImportWizardState extends State<ModelImportWizard> {
             const SizedBox(height: 8),
             Text(
               p.basename(_pickedLabelsPath!),
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+              ),
             ),
           ],
         ],
@@ -517,8 +533,10 @@ class _ModelImportWizardState extends State<ModelImportWizard> {
     }
 
     final classCount = _modelResult?.classCount ?? 0;
-    final validation =
-        await ModelValidator.validateLabels(path, expectedCount: classCount);
+    final validation = await ModelValidator.validateLabels(
+      path,
+      expectedCount: classCount,
+    );
 
     if (!mounted) return;
     setState(() {
@@ -564,14 +582,20 @@ class _ModelImportWizardState extends State<ModelImportWizard> {
                 color: Colors.green.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.check_circle_outline,
-                  color: Colors.green, size: 28),
+              child: const Icon(
+                Icons.check_circle_outline,
+                color: Colors.green,
+                size: 28,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 l10n.wizardSummaryTitle,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ],
@@ -628,8 +652,9 @@ class _ModelImportWizardState extends State<ModelImportWizard> {
               onPressed: _canProceed ? _onNext : null,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                backgroundColor:
-                    _step == _totalSteps - 1 ? Colors.green : AppColors.primary,
+                backgroundColor: _step == _totalSteps - 1
+                    ? Colors.green
+                    : AppColors.primary,
               ),
               child: Text(
                 _step == _totalSteps - 1
@@ -739,8 +764,8 @@ class _StepIndicator extends StatelessWidget {
                       color: isDone
                           ? AppColors.accent
                           : isActive
-                              ? AppColors.primary
-                              : AppColors.surface,
+                          ? AppColors.primary
+                          : AppColors.surface,
                       border: Border.all(
                         color: isDone || isActive
                             ? AppColors.accent
@@ -750,8 +775,11 @@ class _StepIndicator extends StatelessWidget {
                     ),
                     child: Center(
                       child: isDone
-                          ? const Icon(Icons.check,
-                              size: 14, color: Colors.white)
+                          ? const Icon(
+                              Icons.check,
+                              size: 14,
+                              color: Colors.white,
+                            )
                           : Text(
                               '${i + 1}',
                               style: TextStyle(
@@ -809,12 +837,7 @@ class _RequirementTile extends StatelessWidget {
         children: [
           Icon(icon, size: 20, color: AppColors.accent),
           const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(height: 1.4),
-            ),
-          ),
+          Expanded(child: Text(text, style: const TextStyle(height: 1.4))),
         ],
       ),
     );
@@ -845,7 +868,10 @@ class _ErrorBanner extends StatelessWidget {
             child: Text(
               message,
               style: const TextStyle(
-                  color: Colors.redAccent, fontSize: 13, height: 1.4),
+                color: Colors.redAccent,
+                fontSize: 13,
+                height: 1.4,
+              ),
             ),
           ),
         ],
@@ -872,14 +898,20 @@ class _WarningBanner extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.warning_amber_rounded,
-              color: AppColors.warning, size: 18),
+          const Icon(
+            Icons.warning_amber_rounded,
+            color: AppColors.warning,
+            size: 18,
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               message,
               style: const TextStyle(
-                  color: AppColors.warning, fontSize: 13, height: 1.4),
+                color: AppColors.warning,
+                fontSize: 13,
+                height: 1.4,
+              ),
             ),
           ),
         ],
@@ -909,16 +941,20 @@ class _SuccessBanner extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.check_circle_outline,
-                  color: Colors.green, size: 18),
+              const Icon(
+                Icons.check_circle_outline,
+                color: Colors.green,
+                size: 18,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   title,
                   style: const TextStyle(
-                      color: Colors.green,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14),
+                    color: Colors.green,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
                 ),
               ),
             ],
@@ -931,7 +967,10 @@ class _SuccessBanner extends StatelessWidget {
                 child: Text(
                   detail,
                   style: const TextStyle(
-                      color: Colors.green, fontSize: 13, height: 1.3),
+                    color: Colors.green,
+                    fontSize: 13,
+                    height: 1.3,
+                  ),
                 ),
               ),
           ],
@@ -959,7 +998,9 @@ class _SummaryRow extends StatelessWidget {
             child: Text(
               label,
               style: const TextStyle(
-                  color: AppColors.textSecondary, fontSize: 13),
+                color: AppColors.textSecondary,
+                fontSize: 13,
+              ),
             ),
           ),
           Expanded(

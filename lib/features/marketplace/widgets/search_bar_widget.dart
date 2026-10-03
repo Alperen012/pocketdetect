@@ -27,10 +27,7 @@ class MarketplaceSearchBar extends StatelessWidget {
       child: TextField(
         controller: controller,
         onChanged: onChanged,
-        style: const TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: 14,
-        ),
+        style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: const TextStyle(

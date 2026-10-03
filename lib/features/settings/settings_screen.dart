@@ -20,18 +20,23 @@ class SettingsScreen extends StatelessWidget {
     final l10n = context.l10n;
     // The class filter is built from COCO names, so it only applies to models
     // that use them.
-    final supportsLabelFilter =
-        context.watch<ModelLibraryService>().activeModel.supportsLabelFilter;
+    final supportsLabelFilter = context
+        .watch<ModelLibraryService>()
+        .activeModel
+        .supportsLabelFilter;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.advancedSettings),
-      ),
+      appBar: AppBar(title: Text(l10n.advancedSettings)),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: <Widget>[
-            Text(l10n.sectionModelArchitecture,
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+            Text(
+              l10n.sectionModelArchitecture,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+              ),
+            ),
             const SizedBox(height: 12),
             const _ActiveModelCard(),
             if (supportsLabelFilter) ...<Widget>[
@@ -53,8 +58,13 @@ class SettingsScreen extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 24),
-            Text(l10n.sectionDetectionThresholds,
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+            Text(
+              l10n.sectionDetectionThresholds,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+              ),
+            ),
             const SizedBox(height: 12),
             Card(
               child: Padding(
@@ -66,8 +76,10 @@ class SettingsScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
                         Text(l10n.confidenceThreshold),
-                        Text(settings.confidenceThreshold.toStringAsFixed(2),
-                            style: const TextStyle(color: AppColors.accent)),
+                        Text(
+                          settings.confidenceThreshold.toStringAsFixed(2),
+                          style: const TextStyle(color: AppColors.accent),
+                        ),
                       ],
                     ),
                     Slider(
@@ -76,8 +88,10 @@ class SettingsScreen extends StatelessWidget {
                       max: 0.9,
                       onChanged: controller.updateConfidence,
                     ),
-                    Text(l10n.confidenceThresholdDesc,
-                        style: const TextStyle(color: AppColors.textSecondary)),
+                    Text(
+                      l10n.confidenceThresholdDesc,
+                      style: const TextStyle(color: AppColors.textSecondary),
+                    ),
                   ],
                 ),
               ),
@@ -93,8 +107,10 @@ class SettingsScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
                         Text(l10n.iouThreshold),
-                        Text(settings.iouThreshold.toStringAsFixed(2),
-                            style: const TextStyle(color: AppColors.accent)),
+                        Text(
+                          settings.iouThreshold.toStringAsFixed(2),
+                          style: const TextStyle(color: AppColors.accent),
+                        ),
                       ],
                     ),
                     Slider(
@@ -103,15 +119,22 @@ class SettingsScreen extends StatelessWidget {
                       max: 0.9,
                       onChanged: controller.updateIou,
                     ),
-                    Text(l10n.iouThresholdDesc,
-                        style: const TextStyle(color: AppColors.textSecondary)),
+                    Text(
+                      l10n.iouThresholdDesc,
+                      style: const TextStyle(color: AppColors.textSecondary),
+                    ),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 24),
-            Text(l10n.sectionPostProcessing,
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+            Text(
+              l10n.sectionPostProcessing,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+              ),
+            ),
             const SizedBox(height: 12),
             Card(
               child: SwitchListTile(
@@ -133,8 +156,13 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            Text(l10n.sectionProcessingResolution,
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+            Text(
+              l10n.sectionProcessingResolution,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+              ),
+            ),
             const SizedBox(height: 12),
             Card(
               child: Padding(
@@ -209,9 +237,9 @@ class _ActiveModelCard extends StatelessWidget {
           '${l10n.customModelClassCount(model.classCount)} · ${model.quantType}',
         ),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute<void>(builder: (_) => const ModelsScreen()),
-        ),
+        onTap: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute<void>(builder: (_) => const ModelsScreen())),
       ),
     );
   }
@@ -240,7 +268,8 @@ class _MaxDetectionsFieldState extends State<_MaxDetectionsField> {
   @override
   void didUpdateWidget(_MaxDetectionsField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.value != widget.value && _ctrl.text != widget.value.toString()) {
+    if (oldWidget.value != widget.value &&
+        _ctrl.text != widget.value.toString()) {
       _ctrl.text = widget.value.toString();
     }
   }

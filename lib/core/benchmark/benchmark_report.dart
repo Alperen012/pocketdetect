@@ -44,13 +44,13 @@ class TimingStats {
   final double maxMs;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'count': count,
-        'meanMs': _round(meanMs),
-        'medianMs': _round(medianMs),
-        'p90Ms': _round(p90Ms),
-        'minMs': _round(minMs),
-        'maxMs': _round(maxMs),
-      };
+    'count': count,
+    'meanMs': _round(meanMs),
+    'medianMs': _round(medianMs),
+    'p90Ms': _round(p90Ms),
+    'minMs': _round(minMs),
+    'maxMs': _round(maxMs),
+  };
 }
 
 double _round(double v) => (v * 100).roundToDouble() / 100;
@@ -104,17 +104,17 @@ class DelegateBenchmark {
   }
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'requested': requested.name,
-        'actual': actual?.name,
-        'fellBack': fellBack,
-        'loadMs': _round(loadMs),
-        'wall': wall?.toJson(),
-        'native': native?.toJson(),
-        'error': error,
-        'fallbackReasons': <String, String>{
-          for (final e in fallbackReasons.entries) e.key.name: e.value,
-        },
-      };
+    'requested': requested.name,
+    'actual': actual?.name,
+    'fellBack': fellBack,
+    'loadMs': _round(loadMs),
+    'wall': wall?.toJson(),
+    'native': native?.toJson(),
+    'error': error,
+    'fallbackReasons': <String, String>{
+      for (final e in fallbackReasons.entries) e.key.name: e.value,
+    },
+  };
 }
 
 /// A full benchmark of one model on this device.
@@ -143,20 +143,19 @@ class BenchmarkReport {
   final Map<String, String> device;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'model': <String, dynamic>{
-          'name': modelName,
-          'input': '${inputWidth}x$inputHeight',
-          'quantization': quantType,
-        },
-        'device': device,
-        'warmupRuns': warmupRuns,
-        'measuredRuns': measuredRuns,
-        'createdAt': createdAt.toUtc().toIso8601String(),
-        'results': results.map((r) => r.toJson()).toList(),
-      };
+    'model': <String, dynamic>{
+      'name': modelName,
+      'input': '${inputWidth}x$inputHeight',
+      'quantization': quantType,
+    },
+    'device': device,
+    'warmupRuns': warmupRuns,
+    'measuredRuns': measuredRuns,
+    'createdAt': createdAt.toUtc().toIso8601String(),
+    'results': results.map((r) => r.toJson()).toList(),
+  };
 
-  String toJsonString() =>
-      const JsonEncoder.withIndent('  ').convert(toJson());
+  String toJsonString() => const JsonEncoder.withIndent('  ').convert(toJson());
 
   /// Plain-text summary suitable for pasting into an issue or chat.
   String toText() {

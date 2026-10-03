@@ -50,9 +50,7 @@ class FilterChips extends StatelessWidget {
                       vertical: 7,
                     ),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.primary
-                          : AppColors.surface,
+                      color: isSelected ? AppColors.primary : AppColors.surface,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
                         color: isSelected
@@ -67,8 +65,9 @@ class FilterChips extends StatelessWidget {
                             ? Colors.white
                             : AppColors.textSecondary,
                         fontSize: 13,
-                        fontWeight:
-                            isSelected ? FontWeight.w600 : FontWeight.w500,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w500,
                       ),
                     ),
                   ),
@@ -100,9 +99,7 @@ class FilterChips extends StatelessWidget {
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: isSelected
-                            ? AppColors.accent
-                            : AppColors.border,
+                        color: isSelected ? AppColors.accent : AppColors.border,
                       ),
                     ),
                     child: Text(
@@ -112,8 +109,9 @@ class FilterChips extends StatelessWidget {
                             ? AppColors.accent
                             : AppColors.textSecondary,
                         fontSize: 12,
-                        fontWeight:
-                            isSelected ? FontWeight.w600 : FontWeight.w400,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
                       ),
                     ),
                   ),

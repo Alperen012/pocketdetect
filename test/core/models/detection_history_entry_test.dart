@@ -16,7 +16,8 @@ void main() {
     return DetectionHistoryEntry(
       id: id,
       imagePath: imagePath,
-      detections: detections ??
+      detections:
+          detections ??
           [
             const DetectedObject(
               label: 'cat',
@@ -65,10 +66,7 @@ void main() {
     });
 
     test('encodeList / decodeList round-trips a list', () {
-      final entries = [
-        makeEntry(id: 'a'),
-        makeEntry(id: 'b', inferenceMs: 99),
-      ];
+      final entries = [makeEntry(id: 'a'), makeEntry(id: 'b', inferenceMs: 99)];
       final encoded = DetectionHistoryEntry.encodeList(entries);
       final decoded = DetectionHistoryEntry.decodeList(encoded);
 

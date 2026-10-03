@@ -100,14 +100,16 @@ List<RawDetection> decodeYolo(DecodeRequest request) {
     final width = (w / scaledWN).clamp(0.0, 1.0 - left);
     final height = (h / scaledHN).clamp(0.0, 1.0 - top);
 
-    results.add(RawDetection(
-      label: label,
-      score: bestScore,
-      left: left,
-      top: top,
-      width: width,
-      height: height,
-    ));
+    results.add(
+      RawDetection(
+        label: label,
+        score: bestScore,
+        left: left,
+        top: top,
+        width: width,
+        height: height,
+      ),
+    );
   }
 
   results.sort((a, b) => b.score.compareTo(a.score));

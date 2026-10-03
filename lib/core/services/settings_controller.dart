@@ -140,11 +140,14 @@ class SettingsController extends ChangeNotifier {
     return AppSettings.defaults.copyWith(
       resolutionProfile: ResolutionProfile.fromId(resolutionId),
       confidenceThreshold:
-          _prefs.getDouble(_keyConfidence) ?? AppSettings.defaults.confidenceThreshold,
-      iouThreshold: _prefs.getDouble(_keyIou) ?? AppSettings.defaults.iouThreshold,
+          _prefs.getDouble(_keyConfidence) ??
+          AppSettings.defaults.confidenceThreshold,
+      iouThreshold:
+          _prefs.getDouble(_keyIou) ?? AppSettings.defaults.iouThreshold,
       useNms: _prefs.getBool(_keyUseNms) ?? AppSettings.defaults.useNms,
       maxDetections:
-          _prefs.getInt(_keyMaxDetections) ?? AppSettings.defaults.maxDetections,
+          _prefs.getInt(_keyMaxDetections) ??
+          AppSettings.defaults.maxDetections,
       lowMemoryWarningSeen: _prefs.getBool(_keyLowMemoryWarningSeen) ?? false,
       onboardingSeen: _prefs.getBool(_keyOnboardingSeen) ?? false,
     );

@@ -23,7 +23,8 @@ DetectionExport sample({
     timestamp: DateTime.utc(2026, 5, 1, 12),
     imageWidth: width,
     imageHeight: height,
-    detections: detections ??
+    detections:
+        detections ??
         <DetectedObject>[
           det('person', 0.91234, const Rect.fromLTWH(0.1, 0.2, 0.3, 0.4)),
           det('person', 0.5, const Rect.fromLTWH(0.5, 0.5, 0.25, 0.25)),
@@ -46,8 +47,8 @@ void main() {
       expect(json['count'], 3);
       expect(json['countByClass'], <String, dynamic>{'person': 2, 'dog': 1});
 
-      final first = (json['detections'] as List<dynamic>).first
-          as Map<String, dynamic>;
+      final first =
+          (json['detections'] as List<dynamic>).first as Map<String, dynamic>;
       expect(first['label'], 'person');
       expect(first['confidence'], 0.9123);
       expect(first['box'], <String, dynamic>{
@@ -65,19 +66,20 @@ void main() {
     });
 
     test('omits pixel data when the image size is unknown', () {
-      final json = jsonDecode(detectionsToJson(sample(width: null, height: null)))
-          as Map<String, dynamic>;
+      final json =
+          jsonDecode(detectionsToJson(sample(width: null, height: null)))
+              as Map<String, dynamic>;
 
       expect(json.containsKey('imageSize'), isFalse);
-      final first = (json['detections'] as List<dynamic>).first
-          as Map<String, dynamic>;
+      final first =
+          (json['detections'] as List<dynamic>).first as Map<String, dynamic>;
       expect(first.containsKey('boxPx'), isFalse);
     });
 
     test('an empty result is valid JSON with count 0', () {
-      final json = jsonDecode(
-        detectionsToJson(sample(detections: <DetectedObject>[])),
-      ) as Map<String, dynamic>;
+      final json =
+          jsonDecode(detectionsToJson(sample(detections: <DetectedObject>[])))
+              as Map<String, dynamic>;
 
       expect(json['count'], 0);
       expect(json['detections'], isEmpty);
@@ -88,26 +90,33 @@ void main() {
     test('has a header and one row per detection', () {
       final lines = detectionsToCsv(sample()).trimRight().split('\r\n');
 
-      expect(lines.first,
-          'label,confidence,x,y,width,height,x_px,y_px,width_px,height_px');
+      expect(
+        lines.first,
+        'label,confidence,x,y,width,height,x_px,y_px,width_px,height_px',
+      );
       expect(lines, hasLength(4));
       expect(lines[1], 'person,0.9123,0.1,0.2,0.3,0.4,20,20,60,40');
     });
 
     test('drops the pixel columns without an image size', () {
-      final lines =
-          detectionsToCsv(sample(width: null, height: null)).trimRight().split('\r\n');
+      final lines = detectionsToCsv(
+        sample(width: null, height: null),
+      ).trimRight().split('\r\n');
 
       expect(lines.first, 'label,confidence,x,y,width,height');
       expect(lines[1], 'person,0.9123,0.1,0.2,0.3,0.4');
     });
 
     test('quotes labels containing commas, quotes and newlines', () {
-      final csv = detectionsToCsv(sample(detections: <DetectedObject>[
-        det('a,b', 0.5, const Rect.fromLTWH(0, 0, 1, 1)),
-        det('say "hi"', 0.5, const Rect.fromLTWH(0, 0, 1, 1)),
-        det('two\nlines', 0.5, const Rect.fromLTWH(0, 0, 1, 1)),
-      ]));
+      final csv = detectionsToCsv(
+        sample(
+          detections: <DetectedObject>[
+            det('a,b', 0.5, const Rect.fromLTWH(0, 0, 1, 1)),
+            det('say "hi"', 0.5, const Rect.fromLTWH(0, 0, 1, 1)),
+            det('two\nlines', 0.5, const Rect.fromLTWH(0, 0, 1, 1)),
+          ],
+        ),
+      );
 
       expect(csv, contains('"a,b",'));
       expect(csv, contains('"say ""hi""",'));
@@ -115,11 +124,15 @@ void main() {
     });
 
     test('neutralizes labels a spreadsheet would run as a formula', () {
-      final csv = detectionsToCsv(sample(detections: <DetectedObject>[
-        det('=HYPERLINK("http://x")', 0.5, const Rect.fromLTWH(0, 0, 1, 1)),
-        det('+1', 0.5, const Rect.fromLTWH(0, 0, 1, 1)),
-        det('@cmd', 0.5, const Rect.fromLTWH(0, 0, 1, 1)),
-      ]));
+      final csv = detectionsToCsv(
+        sample(
+          detections: <DetectedObject>[
+            det('=HYPERLINK("http://x")', 0.5, const Rect.fromLTWH(0, 0, 1, 1)),
+            det('+1', 0.5, const Rect.fromLTWH(0, 0, 1, 1)),
+            det('@cmd', 0.5, const Rect.fromLTWH(0, 0, 1, 1)),
+          ],
+        ),
+      );
 
       final rows = csv.trimRight().split('\r\n').skip(1).toList();
       expect(rows[0], startsWith('"\'=HYPERLINK'));
@@ -173,12 +186,14 @@ void main() {
       img.fill(source, color: img.ColorRgb8(0, 0, 0));
       final jpg = Uint8List.fromList(img.encodeJpg(source));
 
-      final png = renderAnnotatedFromBytes(AnnotateRequest(
-        imageBytes: jpg,
-        detections: <DetectedObject>[
-          det('x', 0.9, const Rect.fromLTWH(0.2, 0.2, 0.5, 0.5)),
-        ],
-      ))!;
+      final png = renderAnnotatedFromBytes(
+        AnnotateRequest(
+          imageBytes: jpg,
+          detections: <DetectedObject>[
+            det('x', 0.9, const Rect.fromLTWH(0.2, 0.2, 0.5, 0.5)),
+          ],
+        ),
+      )!;
 
       final decoded = img.decodePng(png)!;
       expect((decoded.width, decoded.height), (80, 60));
@@ -205,10 +220,12 @@ void main() {
 
     test('returns null for bytes that are not an image', () {
       expect(
-        renderAnnotatedFromBytes(AnnotateRequest(
-          imageBytes: Uint8List.fromList(<int>[1, 2, 3]),
-          detections: const <DetectedObject>[],
-        )),
+        renderAnnotatedFromBytes(
+          AnnotateRequest(
+            imageBytes: Uint8List.fromList(<int>[1, 2, 3]),
+            detections: const <DetectedObject>[],
+          ),
+        ),
         isNull,
       );
     });

@@ -46,7 +46,9 @@ class ResolutionProfile {
   static ResolutionProfile fromId(String? id) {
     assert(() {
       if (id != null && !values.any((p) => p.id == id)) {
-        debugPrint('ResolutionProfile.fromId: unknown id "$id", defaulting to quality');
+        debugPrint(
+          'ResolutionProfile.fromId: unknown id "$id", defaulting to quality',
+        );
       }
       return true;
     }());

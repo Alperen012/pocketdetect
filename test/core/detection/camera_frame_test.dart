@@ -65,17 +65,19 @@ void main() {
 
     test('yuv420 with neutral chroma yields gray pixels from Y', () {
       final y = Uint8List.fromList(<int>[0, 50, 100, 150, 200, 250, 10, 20]);
-      final image = convertCameraFrame(CameraFrameData(
-        format: CameraFrameFormat.yuv420,
-        width: 4,
-        height: 2,
-        plane0: y,
-        rowStride0: 4,
-        plane1: neutral(2),
-        plane2: neutral(2),
-        uvRowStride: 2,
-        uvPixelStride: 1,
-      ));
+      final image = convertCameraFrame(
+        CameraFrameData(
+          format: CameraFrameFormat.yuv420,
+          width: 4,
+          height: 2,
+          plane0: y,
+          rowStride0: 4,
+          plane1: neutral(2),
+          plane2: neutral(2),
+          uvRowStride: 2,
+          uvPixelStride: 1,
+        ),
+      );
 
       expect(image.width, 4);
       expect(image.height, 2);
@@ -93,17 +95,19 @@ void main() {
       final u = Uint8List.fromList(<int>[128, 0, 228, 0]); // samples: 128, 228
       final v = Uint8List.fromList(<int>[128, 0, 128, 0]); // samples: 128, 128
 
-      final image = convertCameraFrame(CameraFrameData(
-        format: CameraFrameFormat.yuv420,
-        width: 4,
-        height: 2,
-        plane0: y,
-        rowStride0: 4,
-        plane1: u,
-        plane2: v,
-        uvRowStride: 4,
-        uvPixelStride: 2,
-      ));
+      final image = convertCameraFrame(
+        CameraFrameData(
+          format: CameraFrameFormat.yuv420,
+          width: 4,
+          height: 2,
+          plane0: y,
+          rowStride0: 4,
+          plane1: u,
+          plane2: v,
+          uvRowStride: 4,
+          uvPixelStride: 2,
+        ),
+      );
 
       // Left half: neutral chroma -> stays gray.
       expect(image.getPixel(0, 0).b, closeTo(100, 1));
@@ -115,17 +119,19 @@ void main() {
     test('respects the Y row stride when rows are padded', () {
       // 2x2 image stored with a 4-byte row stride (2 padding bytes per row).
       final y = Uint8List.fromList(<int>[10, 20, 255, 255, 30, 40, 255, 255]);
-      final image = convertCameraFrame(CameraFrameData(
-        format: CameraFrameFormat.yuv420,
-        width: 2,
-        height: 2,
-        plane0: y,
-        rowStride0: 4,
-        plane1: neutral(1),
-        plane2: neutral(1),
-        uvRowStride: 1,
-        uvPixelStride: 1,
-      ));
+      final image = convertCameraFrame(
+        CameraFrameData(
+          format: CameraFrameFormat.yuv420,
+          width: 2,
+          height: 2,
+          plane0: y,
+          rowStride0: 4,
+          plane1: neutral(1),
+          plane2: neutral(1),
+          uvRowStride: 1,
+          uvPixelStride: 1,
+        ),
+      );
 
       expect(image.getPixel(0, 0).r, 10);
       expect(image.getPixel(1, 0).r, 20);
@@ -135,13 +141,15 @@ void main() {
 
     test('bgra8888 is reordered to rgb', () {
       // One pixel: B=10, G=20, R=30, A=255.
-      final image = convertCameraFrame(CameraFrameData(
-        format: CameraFrameFormat.bgra8888,
-        width: 1,
-        height: 1,
-        plane0: Uint8List.fromList(<int>[10, 20, 30, 255]),
-        rowStride0: 4,
-      ));
+      final image = convertCameraFrame(
+        CameraFrameData(
+          format: CameraFrameFormat.bgra8888,
+          width: 1,
+          height: 1,
+          plane0: Uint8List.fromList(<int>[10, 20, 30, 255]),
+          rowStride0: 4,
+        ),
+      );
 
       final p = image.getPixel(0, 0);
       expect((p.r, p.g, p.b), (30, 20, 10));
@@ -149,18 +157,20 @@ void main() {
 
     test('rotating 90° clockwise moves the left pixel to the top', () {
       // 2x1 frame: left pixel Y=10, right pixel Y=200.
-      final image = convertCameraFrame(CameraFrameData(
-        format: CameraFrameFormat.yuv420,
-        width: 2,
-        height: 1,
-        plane0: Uint8List.fromList(<int>[10, 200]),
-        rowStride0: 2,
-        plane1: neutral(1),
-        plane2: neutral(1),
-        uvRowStride: 1,
-        uvPixelStride: 1,
-        rotationDegrees: 90,
-      ));
+      final image = convertCameraFrame(
+        CameraFrameData(
+          format: CameraFrameFormat.yuv420,
+          width: 2,
+          height: 1,
+          plane0: Uint8List.fromList(<int>[10, 200]),
+          rowStride0: 2,
+          plane1: neutral(1),
+          plane2: neutral(1),
+          uvRowStride: 1,
+          uvPixelStride: 1,
+          rotationDegrees: 90,
+        ),
+      );
 
       expect((image.width, image.height), (1, 2));
       expect(image.getPixel(0, 0).r, 10);
@@ -168,18 +178,20 @@ void main() {
     });
 
     test('rotating 180° reverses the pixels', () {
-      final image = convertCameraFrame(CameraFrameData(
-        format: CameraFrameFormat.yuv420,
-        width: 2,
-        height: 1,
-        plane0: Uint8List.fromList(<int>[10, 200]),
-        rowStride0: 2,
-        plane1: neutral(1),
-        plane2: neutral(1),
-        uvRowStride: 1,
-        uvPixelStride: 1,
-        rotationDegrees: 180,
-      ));
+      final image = convertCameraFrame(
+        CameraFrameData(
+          format: CameraFrameFormat.yuv420,
+          width: 2,
+          height: 1,
+          plane0: Uint8List.fromList(<int>[10, 200]),
+          rowStride0: 2,
+          plane1: neutral(1),
+          plane2: neutral(1),
+          uvRowStride: 1,
+          uvPixelStride: 1,
+          rotationDegrees: 180,
+        ),
+      );
 
       expect(image.getPixel(0, 0).r, 200);
       expect(image.getPixel(1, 0).r, 10);

@@ -33,7 +33,8 @@ List<DetectedObject> nonMaxSuppression(
     final current = sorted.removeAt(0);
     results.add(current);
     sorted.removeWhere(
-      (candidate) => iou(current.boundingBox, candidate.boundingBox) > iouThreshold,
+      (candidate) =>
+          iou(current.boundingBox, candidate.boundingBox) > iouThreshold,
     );
   }
   return results;

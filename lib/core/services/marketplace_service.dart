@@ -11,11 +11,7 @@ import '../models/model_review.dart';
 import 'download_manager.dart';
 
 /// Sorting options for the marketplace.
-enum MarketplaceSort {
-  newest,
-  mostDownloaded,
-  highestRated,
-}
+enum MarketplaceSort { newest, mostDownloaded, highestRated }
 
 /// Service responsible for all marketplace API calls and state management.
 class MarketplaceService extends ChangeNotifier implements DownloadRecorder {
@@ -113,7 +109,9 @@ class MarketplaceService extends ChangeNotifier implements DownloadRecorder {
     try {
       var filter = _client
           .from('models')
-          .select('*, model_tags(tag), profiles!models_user_id_fkey(username, avatar_url)')
+          .select(
+            '*, model_tags(tag), profiles!models_user_id_fkey(username, avatar_url)',
+          )
           .eq('is_public', true)
           .eq('status', 'active');
 
@@ -145,12 +143,14 @@ class MarketplaceService extends ChangeNotifier implements DownloadRecorder {
           orderColumn = 'avg_rating';
       }
 
-      final data =
-          await filter.order(orderColumn, ascending: false).limit(_pageSize);
+      final data = await filter
+          .order(orderColumn, ascending: false)
+          .limit(_pageSize);
 
       List<MarketplaceModel> fetched = (data as List<dynamic>)
-          .map((dynamic e) =>
-              MarketplaceModel.fromJson(e as Map<String, dynamic>))
+          .map(
+            (dynamic e) => MarketplaceModel.fromJson(e as Map<String, dynamic>),
+          )
           .toList();
 
       // Tag filter (client-side since model_tags is a joined table)
@@ -194,7 +194,8 @@ class MarketplaceService extends ChangeNotifier implements DownloadRecorder {
       final data = await _client
           .from('models')
           .select(
-              '*, model_tags(tag), profiles!models_user_id_fkey(username, avatar_url)')
+            '*, model_tags(tag), profiles!models_user_id_fkey(username, avatar_url)',
+          )
           .eq('id', modelId)
           .single();
 
@@ -218,19 +219,21 @@ class MarketplaceService extends ChangeNotifier implements DownloadRecorder {
     try {
       var filter = _client
           .from('model_reviews')
-          .select('*, profiles!model_reviews_user_id_fkey(username, avatar_url)')
+          .select(
+            '*, profiles!model_reviews_user_id_fkey(username, avatar_url)',
+          )
           .eq('model_id', modelId);
 
       if (cursorCreatedAt != null) {
         filter = filter.lt('created_at', cursorCreatedAt);
       }
 
-      final data =
-          await filter.order('created_at', ascending: false).limit(limit);
+      final data = await filter
+          .order('created_at', ascending: false)
+          .limit(limit);
 
       return (data as List<dynamic>)
-          .map((dynamic e) =>
-              ModelReview.fromJson(e as Map<String, dynamic>))
+          .map((dynamic e) => ModelReview.fromJson(e as Map<String, dynamic>))
           .toList();
     } catch (e) {
       debugPrint('fetchReviews error: $e');
@@ -289,10 +292,10 @@ class MarketplaceService extends ChangeNotifier implements DownloadRecorder {
 
       if (ratings.isNotEmpty) {
         final avg = ratings.reduce((a, b) => a + b) / ratings.length;
-        await _client.from('models').update({
-          'avg_rating': avg,
-          'review_count': ratings.length,
-        }).eq('id', modelId);
+        await _client
+            .from('models')
+            .update({'avg_rating': avg, 'review_count': ratings.length})
+            .eq('id', modelId);
       }
     } catch (e) {
       debugPrint('_recalculateRating error: $e');
@@ -366,27 +369,31 @@ class MarketplaceService extends ChangeNotifier implements DownloadRecorder {
       final fileName = '${userId}_${slug}_v$version.tflite';
       final modelBytes = await _readFileBytes(filePath);
 
-      await _client.storage.from('models').uploadBinary(
+      await _client.storage
+          .from('models')
+          .uploadBinary(
             fileName,
             modelBytes,
             fileOptions: const FileOptions(upsert: true),
           );
 
-      final fileUrl =
-          _client.storage.from('models').getPublicUrl(fileName);
+      final fileUrl = _client.storage.from('models').getPublicUrl(fileName);
 
       // Upload thumbnail if provided
       String? thumbnailUrl;
       if (thumbnailPath != null) {
         final thumbBytes = await _readFileBytes(thumbnailPath);
         final thumbName = '${userId}_${slug}_thumb.jpg';
-        await _client.storage.from('thumbnails').uploadBinary(
+        await _client.storage
+            .from('thumbnails')
+            .uploadBinary(
               thumbName,
               thumbBytes,
               fileOptions: const FileOptions(upsert: true),
             );
-        thumbnailUrl =
-            _client.storage.from('thumbnails').getPublicUrl(thumbName);
+        thumbnailUrl = _client.storage
+            .from('thumbnails')
+            .getPublicUrl(thumbName);
       }
 
       // Insert model record
@@ -446,13 +453,16 @@ class MarketplaceService extends ChangeNotifier implements DownloadRecorder {
     try {
       final data = await _client
           .from('models')
-          .select('*, model_tags(tag), profiles!models_user_id_fkey(username, avatar_url)')
+          .select(
+            '*, model_tags(tag), profiles!models_user_id_fkey(username, avatar_url)',
+          )
           .eq('user_id', userId)
           .order('created_at', ascending: false);
 
       return (data as List<dynamic>)
-          .map((dynamic e) =>
-              MarketplaceModel.fromJson(e as Map<String, dynamic>))
+          .map(
+            (dynamic e) => MarketplaceModel.fromJson(e as Map<String, dynamic>),
+          )
           .toList();
     } catch (e) {
       debugPrint('fetchMyModels error: $e');
@@ -490,17 +500,16 @@ class MarketplaceService extends ChangeNotifier implements DownloadRecorder {
       });
 
       // Increment download count
-      await _client.rpc('increment_download_count', params: {
-        'model_id_param': modelId,
-      });
+      await _client.rpc(
+        'increment_download_count',
+        params: {'model_id_param': modelId},
+      );
 
       // Update local state
       _updateModelInList(
         modelId,
-        (m) => m.copyWith(
-          downloadCount: m.downloadCount + 1,
-          isDownloaded: true,
-        ),
+        (m) =>
+            m.copyWith(downloadCount: m.downloadCount + 1, isDownloaded: true),
       );
 
       return null;
@@ -526,8 +535,7 @@ class MarketplaceService extends ChangeNotifier implements DownloadRecorder {
           .eq('user_id', userId);
 
       final favoriteIds = (favorites as List<dynamic>)
-          .map((dynamic e) =>
-              (e as Map<String, dynamic>)['model_id'] as String)
+          .map((dynamic e) => (e as Map<String, dynamic>)['model_id'] as String)
           .toSet();
 
       // Get user's downloads
@@ -537,8 +545,7 @@ class MarketplaceService extends ChangeNotifier implements DownloadRecorder {
           .eq('user_id', userId);
 
       final downloadedIds = (downloads as List<dynamic>)
-          .map((dynamic e) =>
-              (e as Map<String, dynamic>)['model_id'] as String)
+          .map((dynamic e) => (e as Map<String, dynamic>)['model_id'] as String)
           .toSet();
 
       // Get local download paths
@@ -571,9 +578,7 @@ class MarketplaceService extends ChangeNotifier implements DownloadRecorder {
 
   void _cacheModels(List<MarketplaceModel> models) {
     try {
-      final jsonStr = jsonEncode(
-        models.map((m) => m.toJson()).toList(),
-      );
+      final jsonStr = jsonEncode(models.map((m) => m.toJson()).toList());
       _prefs.setString(_cacheKey, jsonStr);
     } catch (e) {
       debugPrint('Cache write error: $e');
@@ -586,8 +591,10 @@ class MarketplaceService extends ChangeNotifier implements DownloadRecorder {
       if (cached != null) {
         final list = jsonDecode(cached) as List<dynamic>;
         _models = list
-            .map((dynamic e) =>
-                MarketplaceModel.fromJson(e as Map<String, dynamic>))
+            .map(
+              (dynamic e) =>
+                  MarketplaceModel.fromJson(e as Map<String, dynamic>),
+            )
             .toList();
       }
     } catch (e) {

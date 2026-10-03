@@ -120,23 +120,28 @@ void main() {
       expect(controller.settings.lowMemoryWarningSeen, true);
     });
 
-    test('onboarding starts unseen, persists once seen and survives a reset',
-        () {
-      expect(controller.settings.onboardingSeen, false);
+    test(
+      'onboarding starts unseen, persists once seen and survives a reset',
+      () {
+        expect(controller.settings.onboardingSeen, false);
 
-      controller.markOnboardingSeen();
-      expect(controller.settings.onboardingSeen, true);
-      expect(SettingsController(prefs).settings.onboardingSeen, true);
+        controller.markOnboardingSeen();
+        expect(controller.settings.onboardingSeen, true);
+        expect(SettingsController(prefs).settings.onboardingSeen, true);
 
-      controller.resetToDefaults();
-      expect(controller.settings.onboardingSeen, true);
-    });
+        controller.resetToDefaults();
+        expect(controller.settings.onboardingSeen, true);
+      },
+    );
 
     test('a low-RAM device starts on the balanced resolution', () {
       controller.applyDeviceDefaults(lowRam: true);
 
       expect(controller.settings.resolutionProfile.id, 'balanced');
-      expect(SettingsController(prefs).settings.resolutionProfile.id, 'balanced');
+      expect(
+        SettingsController(prefs).settings.resolutionProfile.id,
+        'balanced',
+      );
     });
 
     test('a normal device keeps the default resolution', () {

@@ -24,10 +24,10 @@ void main() {
   var idCounter = 0;
 
   Future<ModelLibraryService> openLibrary() => ModelLibraryService.create(
-        prefs,
-        modelsDir: () async => Directory(p.join(tmp.path, 'library')),
-        idGenerator: () => 'id${++idCounter}',
-      );
+    prefs,
+    modelsDir: () async => Directory(p.join(tmp.path, 'library')),
+    idGenerator: () => 'id${++idCounter}',
+  );
 
   setUp(() async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -103,36 +103,40 @@ void main() {
       expect(model.usesCocoLabels, isFalse);
     });
 
-    test('COCO labels mean no explicit list and a usable label filter',
-        () async {
-      final lib = await openLibrary();
-      final model = await lib.installFile(
-        sourcePath: source.path,
-        name: 'coco',
-        validation: validModel(classes: 80),
-        usesCocoLabels: true,
-      );
-
-      expect(model.labels, isEmpty);
-      expect(model.usesCocoLabels, isTrue);
-      expect(model.supportsLabelFilter, isTrue);
-    });
-
-    test('rejects a label list whose length differs from the class count',
-        () async {
-      final lib = await openLibrary();
-
-      expect(
-        () => lib.installFile(
+    test(
+      'COCO labels mean no explicit list and a usable label filter',
+      () async {
+        final lib = await openLibrary();
+        final model = await lib.installFile(
           sourcePath: source.path,
-          name: 'm',
-          validation: validModel(classes: 3),
-          labels: <String>['only', 'two'],
-        ),
-        throwsArgumentError,
-      );
-      expect(lib.models, hasLength(1));
-    });
+          name: 'coco',
+          validation: validModel(classes: 80),
+          usesCocoLabels: true,
+        );
+
+        expect(model.labels, isEmpty);
+        expect(model.usesCocoLabels, isTrue);
+        expect(model.supportsLabelFilter, isTrue);
+      },
+    );
+
+    test(
+      'rejects a label list whose length differs from the class count',
+      () async {
+        final lib = await openLibrary();
+
+        expect(
+          () => lib.installFile(
+            sourcePath: source.path,
+            name: 'm',
+            validation: validModel(classes: 3),
+            labels: <String>['only', 'two'],
+          ),
+          throwsArgumentError,
+        );
+        expect(lib.models, hasLength(1));
+      },
+    );
 
     test('rejects a model that failed validation', () async {
       final lib = await openLibrary();
@@ -162,7 +166,10 @@ void main() {
       );
 
       expect(lib.models, hasLength(1));
-      expect(Directory(p.join(tmp.path, 'library', 'id1')).existsSync(), isFalse);
+      expect(
+        Directory(p.join(tmp.path, 'library', 'id1')).existsSync(),
+        isFalse,
+      );
     });
 
     test('activate switches the active model and notifies', () async {
@@ -200,23 +207,25 @@ void main() {
       expect(lib.byId(model.id)!.name, 'new');
     });
 
-    test('remove deletes the file and falls back to the bundled model',
-        () async {
-      final lib = await openLibrary();
-      final model = await lib.installFile(
-        sourcePath: source.path,
-        name: 'm',
-        validation: validModel(),
-      );
-      await lib.activate(model.id);
+    test(
+      'remove deletes the file and falls back to the bundled model',
+      () async {
+        final lib = await openLibrary();
+        final model = await lib.installFile(
+          sourcePath: source.path,
+          name: 'm',
+          validation: validModel(),
+        );
+        await lib.activate(model.id);
 
-      await lib.remove(model.id);
+        await lib.remove(model.id);
 
-      expect(lib.activeModel.isBuiltIn, isTrue);
-      expect(lib.byId(model.id), isNull);
-      expect(File(model.filePath!).existsSync(), isFalse);
-      expect(Directory(p.dirname(model.filePath!)).existsSync(), isFalse);
-    });
+        expect(lib.activeModel.isBuiltIn, isTrue);
+        expect(lib.byId(model.id), isNull);
+        expect(File(model.filePath!).existsSync(), isFalse);
+        expect(Directory(p.dirname(model.filePath!)).existsSync(), isFalse);
+      },
+    );
 
     test('the bundled model cannot be removed', () async {
       final lib = await openLibrary();
@@ -243,22 +252,24 @@ void main() {
       expect(reopened.activeModel.labels, <String>['a', 'b', 'c']);
     });
 
-    test('drops models whose file disappeared and resets the active one',
-        () async {
-      final lib = await openLibrary();
-      final model = await lib.installFile(
-        sourcePath: source.path,
-        name: 'gone',
-        validation: validModel(),
-      );
-      await lib.activate(model.id);
-      File(model.filePath!).deleteSync();
+    test(
+      'drops models whose file disappeared and resets the active one',
+      () async {
+        final lib = await openLibrary();
+        final model = await lib.installFile(
+          sourcePath: source.path,
+          name: 'gone',
+          validation: validModel(),
+        );
+        await lib.activate(model.id);
+        File(model.filePath!).deleteSync();
 
-      final reopened = await openLibrary();
+        final reopened = await openLibrary();
 
-      expect(reopened.models, hasLength(1));
-      expect(reopened.activeModel.isBuiltIn, isTrue);
-    });
+        expect(reopened.models, hasLength(1));
+        expect(reopened.activeModel.isBuiltIn, isTrue);
+      },
+    );
 
     test('survives corrupted stored data', () async {
       SharedPreferences.setMockInitialValues(<String, Object>{
@@ -324,22 +335,24 @@ void main() {
       expect(prefs.containsKey('model_id'), isFalse);
     });
 
-    test('keeps the bundled model active when the old toggle was off',
-        () async {
-      final legacyModel = File(p.join(tmp.path, 'old.tflite'))
-        ..writeAsBytesSync(<int>[1]);
-      SharedPreferences.setMockInitialValues(<String, Object>{
-        'use_custom_model': false,
-        'custom_model_path': legacyModel.path,
-      });
-      prefs = await SharedPreferences.getInstance();
+    test(
+      'keeps the bundled model active when the old toggle was off',
+      () async {
+        final legacyModel = File(p.join(tmp.path, 'old.tflite'))
+          ..writeAsBytesSync(<int>[1]);
+        SharedPreferences.setMockInitialValues(<String, Object>{
+          'use_custom_model': false,
+          'custom_model_path': legacyModel.path,
+        });
+        prefs = await SharedPreferences.getInstance();
 
-      final lib = await openLibrary();
+        final lib = await openLibrary();
 
-      expect(lib.models, hasLength(2));
-      expect(lib.activeModel.isBuiltIn, isTrue);
-      expect(lib.models.last.usesCocoLabels, isTrue);
-    });
+        expect(lib.models, hasLength(2));
+        expect(lib.activeModel.isBuiltIn, isTrue);
+        expect(lib.models.last.usesCocoLabels, isTrue);
+      },
+    );
 
     test('ignores an old path whose file no longer exists', () async {
       SharedPreferences.setMockInitialValues(<String, Object>{

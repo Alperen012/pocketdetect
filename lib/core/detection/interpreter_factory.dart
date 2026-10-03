@@ -14,30 +14,26 @@ enum AcceleratorPreference { auto, cpu, gpu, nnapi }
 List<DelegateKind> delegateAttemptOrder(AcceleratorPreference preference) {
   return switch (preference) {
     AcceleratorPreference.auto => const <DelegateKind>[
-        DelegateKind.nnapi,
-        DelegateKind.gpu,
-        DelegateKind.cpu,
-      ],
+      DelegateKind.nnapi,
+      DelegateKind.gpu,
+      DelegateKind.cpu,
+    ],
     AcceleratorPreference.cpu => const <DelegateKind>[DelegateKind.cpu],
     AcceleratorPreference.gpu => const <DelegateKind>[
-        DelegateKind.gpu,
-        DelegateKind.cpu,
-      ],
+      DelegateKind.gpu,
+      DelegateKind.cpu,
+    ],
     AcceleratorPreference.nnapi => const <DelegateKind>[
-        DelegateKind.nnapi,
-        DelegateKind.cpu,
-      ],
+      DelegateKind.nnapi,
+      DelegateKind.cpu,
+    ],
   };
 }
 
 /// Where the model bytes come from: exactly one of [filePath] / [assetPath].
 class ModelSource {
-  const ModelSource.file(String path)
-      : filePath = path,
-        assetPath = null;
-  const ModelSource.asset(String path)
-      : filePath = null,
-        assetPath = path;
+  const ModelSource.file(String path) : filePath = path, assetPath = null;
+  const ModelSource.asset(String path) : filePath = null, assetPath = path;
 
   final String? filePath;
   final String? assetPath;

@@ -55,7 +55,8 @@ class BoundingBoxPainter extends CustomPainter {
       );
 
       // Label background
-      final label = '${det.label} ${(det.confidence * 100).toStringAsFixed(0)}%';
+      final label =
+          '${det.label} ${(det.confidence * 100).toStringAsFixed(0)}%';
       final textSpan = TextSpan(
         text: label,
         style: const TextStyle(
@@ -111,11 +112,7 @@ class BoundingBoxOverlay extends StatelessWidget {
 
 /// An FPS counter chip shown during live detection.
 class FpsCounter extends StatelessWidget {
-  const FpsCounter({
-    super.key,
-    required this.fps,
-    required this.inferenceMs,
-  });
+  const FpsCounter({super.key, required this.fps, required this.inferenceMs});
 
   final double fps;
   final int inferenceMs;

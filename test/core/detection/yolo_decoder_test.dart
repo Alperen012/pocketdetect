@@ -44,21 +44,25 @@ DecodeRequest request(
 void main() {
   group('decodeYolo', () {
     test('empty output yields nothing', () {
-      final result = decodeYolo(const DecodeRequest(
-        output: <List<double>>[],
-        letterbox: _square,
-        confidence: 0.5,
-        labels: <String>['cat'],
-        selectedLabels: <String>['cat'],
-        filterBySelected: false,
-      ));
+      final result = decodeYolo(
+        const DecodeRequest(
+          output: <List<double>>[],
+          letterbox: _square,
+          confidence: 0.5,
+          labels: <String>['cat'],
+          selectedLabels: <String>['cat'],
+          filterBySelected: false,
+        ),
+      );
       expect(result, isEmpty);
     });
 
     test('decodes the best class and a square-input box unchanged', () {
-      final result = decodeYolo(request(<List<double>>[
-        <double>[0.5, 0.5, 0.2, 0.4, 0.1, 0.9],
-      ]));
+      final result = decodeYolo(
+        request(<List<double>>[
+          <double>[0.5, 0.5, 0.2, 0.4, 0.1, 0.9],
+        ]),
+      );
 
       expect(result, hasLength(1));
       final d = result.single;
@@ -81,12 +85,11 @@ void main() {
         padX: 0,
         padY: 160,
       );
-      final result = decodeYolo(request(
-        <List<double>>[
+      final result = decodeYolo(
+        request(<List<double>>[
           <double>[0.5, 0.5, 0.5, 0.25, 0.9, 0.0],
-        ],
-        letterbox: lb,
-      ));
+        ], letterbox: lb),
+      );
 
       final d = result.single;
       expect(d.left, closeTo(0.25, 1e-9));
@@ -105,12 +108,11 @@ void main() {
         padX: 160,
         padY: 0,
       );
-      final result = decodeYolo(request(
-        <List<double>>[
+      final result = decodeYolo(
+        request(<List<double>>[
           <double>[0.5, 0.5, 0.25, 0.5, 0.9, 0.0],
-        ],
-        letterbox: lb,
-      ));
+        ], letterbox: lb),
+      );
 
       final d = result.single;
       expect(d.left, closeTo(0.25, 1e-9));
@@ -120,9 +122,11 @@ void main() {
     });
 
     test('clamps boxes that spill outside the image', () {
-      final result = decodeYolo(request(<List<double>>[
-        <double>[0.05, 0.95, 0.4, 0.4, 0.9, 0.0],
-      ]));
+      final result = decodeYolo(
+        request(<List<double>>[
+          <double>[0.05, 0.95, 0.4, 0.4, 0.9, 0.0],
+        ]),
+      );
 
       final d = result.single;
       expect(d.left, 0.0);
@@ -131,22 +135,22 @@ void main() {
     });
 
     test('drops detections below the confidence threshold', () {
-      final result = decodeYolo(request(
-        <List<double>>[
+      final result = decodeYolo(
+        request(<List<double>>[
           <double>[0.5, 0.5, 0.1, 0.1, 0.49, 0.2],
           <double>[0.5, 0.5, 0.1, 0.1, 0.5, 0.2],
-        ],
-      ));
+        ]),
+      );
       expect(result, hasLength(1));
       expect(result.single.score, 0.5);
     });
 
     test('ignores class channels beyond the label list', () {
-      final result = decodeYolo(request(
-        <List<double>>[
+      final result = decodeYolo(
+        request(<List<double>>[
           <double>[0.5, 0.5, 0.1, 0.1, 0.1, 0.1, 0.99],
-        ],
-      ));
+        ]),
+      );
       expect(result, isEmpty);
     });
 
@@ -156,29 +160,25 @@ void main() {
         <double>[0.2, 0.2, 0.1, 0.1, 0.0, 0.8],
       ];
 
-      final filtered = decodeYolo(request(
-        anchors,
-        selected: const <String>['dog'],
-        filter: true,
-      ));
+      final filtered = decodeYolo(
+        request(anchors, selected: const <String>['dog'], filter: true),
+      );
       expect(filtered.map((d) => d.label), <String>['dog']);
 
-      final unfiltered = decodeYolo(request(
-        anchors,
-        selected: const <String>['dog'],
-        filter: false,
-      ));
+      final unfiltered = decodeYolo(
+        request(anchors, selected: const <String>['dog'], filter: false),
+      );
       expect(unfiltered.map((d) => d.label), <String>['cat', 'dog']);
     });
 
     test('sorts by score descending', () {
-      final result = decodeYolo(request(
-        <List<double>>[
+      final result = decodeYolo(
+        request(<List<double>>[
           <double>[0.2, 0.2, 0.1, 0.1, 0.6, 0.0],
           <double>[0.5, 0.5, 0.1, 0.1, 0.9, 0.0],
           <double>[0.8, 0.8, 0.1, 0.1, 0.0, 0.7],
-        ],
-      ));
+        ]),
+      );
       expect(result.map((d) => d.score), <double>[0.9, 0.7, 0.6]);
     });
   });

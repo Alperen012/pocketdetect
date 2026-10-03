@@ -28,7 +28,10 @@ class CrashMessages {
 
 /// Friendly replacement for the red error widget. Shows the exception only in
 /// debug builds.
-Widget buildCrashScreen(FlutterErrorDetails details, {required String language}) {
+Widget buildCrashScreen(
+  FlutterErrorDetails details, {
+  required String language,
+}) {
   final messages = CrashMessages.forLanguage(language);
   return MaterialApp(
     debugShowCheckedModeBanner: false,
@@ -45,11 +48,16 @@ Widget buildCrashScreen(FlutterErrorDetails details, {required String language})
               Text(
                 messages.title,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
-                kDebugMode ? details.exception.toString() : messages.restartHint,
+                kDebugMode
+                    ? details.exception.toString()
+                    : messages.restartHint,
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.white70),
               ),

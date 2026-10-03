@@ -71,30 +71,36 @@ class _BatchDetectionScreenState extends State<BatchDetectionScreen> {
           filterBySelectedLabels: model.supportsLabelFilter,
         );
 
-        _results.add(_BatchResult(
-          file: _images[i],
-          detections: detections,
-          inferenceMs: ds.lastInferenceMs,
-        ));
+        _results.add(
+          _BatchResult(
+            file: _images[i],
+            detections: detections,
+            inferenceMs: ds.lastInferenceMs,
+          ),
+        );
 
         // Save to history
         if (detections.isNotEmpty) {
-          historyService.addEntry(DetectionHistoryEntry(
-            id: '${DateTime.now().millisecondsSinceEpoch}_$i',
-            imagePath: _images[i].path,
-            detections: detections,
-            timestamp: DateTime.now(),
-            inferenceMs: ds.lastInferenceMs,
-            modelName: model.name,
-          ));
+          historyService.addEntry(
+            DetectionHistoryEntry(
+              id: '${DateTime.now().millisecondsSinceEpoch}_$i',
+              imagePath: _images[i].path,
+              detections: detections,
+              timestamp: DateTime.now(),
+              inferenceMs: ds.lastInferenceMs,
+              modelName: model.name,
+            ),
+          );
         }
       } catch (e) {
-        _results.add(_BatchResult(
-          file: _images[i],
-          detections: [],
-          inferenceMs: 0,
-          error: e.toString(),
-        ));
+        _results.add(
+          _BatchResult(
+            file: _images[i],
+            detections: [],
+            inferenceMs: 0,
+            error: e.toString(),
+          ),
+        );
       }
     }
 
@@ -136,8 +142,11 @@ class _BatchDetectionScreenState extends State<BatchDetectionScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.collections_outlined,
-                              size: 64, color: AppColors.textSecondary),
+                          const Icon(
+                            Icons.collections_outlined,
+                            size: 64,
+                            color: AppColors.textSecondary,
+                          ),
                           const SizedBox(height: 16),
                           Text(
                             l10n.batchNoImages,
@@ -185,10 +194,7 @@ class _BatchDetectionScreenState extends State<BatchDetectionScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  l10n.batchProcessing(
-                    _currentIndex + 1,
-                    _images.length,
-                  ),
+                  l10n.batchProcessing(_currentIndex + 1, _images.length),
                   style: const TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 13,
@@ -215,8 +221,11 @@ class _BatchDetectionScreenState extends State<BatchDetectionScreen> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.check_circle_outline,
-                    color: Colors.white, size: 28),
+                const Icon(
+                  Icons.check_circle_outline,
+                  color: Colors.white,
+                  size: 28,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -285,7 +294,9 @@ class _BatchDetectionScreenState extends State<BatchDetectionScreen> {
                         right: 4,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 3),
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: result.detections.isNotEmpty
                                 ? AppColors.accent

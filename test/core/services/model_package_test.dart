@@ -115,30 +115,32 @@ void main() {
       expect(File(pkg.modelPath).readAsBytesSync(), <int>[1]);
     });
 
-    test('a path-traversal entry name cannot escape the output folder',
-        () async {
-      final zip = writeZip(<String, List<int>>{
-        '../../evil.tflite': <int>[1, 2],
-      });
+    test(
+      'a path-traversal entry name cannot escape the output folder',
+      () async {
+        final zip = writeZip(<String, List<int>>{
+          '../../evil.tflite': <int>[1, 2],
+        });
 
-      final pkg = await extractModelPackage(zip, out);
+        final pkg = await extractModelPackage(zip, out);
 
-      expect(p.isWithin(out.path, pkg.modelPath), isTrue);
-      expect(File(p.join(tmp.path, 'evil.tflite')).existsSync(), isFalse);
-    });
+        expect(p.isWithin(out.path, pkg.modelPath), isTrue);
+        expect(File(p.join(tmp.path, 'evil.tflite')).existsSync(), isFalse);
+      },
+    );
 
     test('a zip without a model is rejected', () async {
-      final zip = writeZip(<String, List<int>>{
-        'labels.txt': text('a'),
-      });
+      final zip = writeZip(<String, List<int>>{'labels.txt': text('a')});
 
       await expectLater(
         extractModelPackage(zip, out),
-        throwsA(isA<ModelPackageException>().having(
-          (e) => e.error,
-          'error',
-          ModelPackageError.noModelFile,
-        )),
+        throwsA(
+          isA<ModelPackageException>().having(
+            (e) => e.error,
+            'error',
+            ModelPackageError.noModelFile,
+          ),
+        ),
       );
     });
 
@@ -148,11 +150,13 @@ void main() {
 
       await expectLater(
         extractModelPackage(path, out),
-        throwsA(isA<ModelPackageException>().having(
-          (e) => e.error,
-          'error',
-          ModelPackageError.notAZip,
-        )),
+        throwsA(
+          isA<ModelPackageException>().having(
+            (e) => e.error,
+            'error',
+            ModelPackageError.notAZip,
+          ),
+        ),
       );
     });
   });

@@ -24,91 +24,95 @@ import 'core/services/settings_controller.dart';
 import 'core/ui/crash_screen.dart';
 
 Future<void> main() async {
-  runZonedGuarded(() async {
-    WidgetsFlutterBinding.ensureInitialized();
+  runZonedGuarded(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
 
-    // Global framework error handler
-    FlutterError.onError = (FlutterErrorDetails details) {
-      FlutterError.presentError(details);
-      debugPrint('FlutterError caught: ${details.exception}');
-    };
+      // Global framework error handler
+      FlutterError.onError = (FlutterErrorDetails details) {
+        FlutterError.presentError(details);
+        debugPrint('FlutterError caught: ${details.exception}');
+      };
 
-    // Custom ErrorWidget for a user-friendly crash screen
-    ErrorWidget.builder = (FlutterErrorDetails details) => buildCrashScreen(
-          details,
-          language: ui.PlatformDispatcher.instance.locale.languageCode,
-        );
-
-    // The marketplace is optional: without the flag the app never touches
-    // Supabase and works without an account or a network.
-    if (AppFlags.marketplace) {
-      await Supabase.initialize(
-        url: SupabaseConfig.url,
-        anonKey: SupabaseConfig.anonKey,
+      // Custom ErrorWidget for a user-friendly crash screen
+      ErrorWidget.builder = (FlutterErrorDetails details) => buildCrashScreen(
+        details,
+        language: ui.PlatformDispatcher.instance.locale.languageCode,
       );
-    }
 
-    final prefs = await SharedPreferences.getInstance();
-    final settingsController = SettingsController(prefs);
-    settingsController.applyDeviceDefaults(
-      lowRam: await const DeviceCapabilities().isLowRamDevice(),
-    );
+      // The marketplace is optional: without the flag the app never touches
+      // Supabase and works without an account or a network.
+      if (AppFlags.marketplace) {
+        await Supabase.initialize(
+          url: SupabaseConfig.url,
+          anonKey: SupabaseConfig.anonKey,
+        );
+      }
 
-    final modelLibrary = await ModelLibraryService.create(
-      prefs,
-      modelsDir: () async {
-        final docs = await getApplicationDocumentsDirectory();
-        return Directory(p.join(docs.path, 'models'));
-      },
-    );
-    final detectionService = DetectionService();
-    await detectionService.initialize(model: modelLibrary.activeModel);
+      final prefs = await SharedPreferences.getInstance();
+      final settingsController = SettingsController(prefs);
+      settingsController.applyDeviceDefaults(
+        lowRam: await const DeviceCapabilities().isLowRamDevice(),
+      );
 
-    // Swap the loaded model whenever the active model changes (import, delete,
-    // activate), so a bad or removed model never lingers until the next run.
-    modelLibrary.addListener(() {
-      detectionService.reloadIfNeeded(modelLibrary.activeModel);
-    });
+      final modelLibrary = await ModelLibraryService.create(
+        prefs,
+        modelsDir: () async {
+          final docs = await getApplicationDocumentsDirectory();
+          return Directory(p.join(docs.path, 'models'));
+        },
+      );
+      final detectionService = DetectionService();
+      await detectionService.initialize(model: modelLibrary.activeModel);
 
-    final authService = AppFlags.marketplace ? AuthService() : null;
-    final marketplaceService =
-        AppFlags.marketplace ? MarketplaceService(prefs) : null;
-    final downloadManager = DownloadManager(
-      marketplaceService: marketplaceService ?? const NoopDownloadRecorder(),
-      library: modelLibrary,
-    );
+      // Swap the loaded model whenever the active model changes (import, delete,
+      // activate), so a bad or removed model never lingers until the next run.
+      modelLibrary.addListener(() {
+        detectionService.reloadIfNeeded(modelLibrary.activeModel);
+      });
 
-    final historyService = DetectionHistoryService(prefs);
+      final authService = AppFlags.marketplace ? AuthService() : null;
+      final marketplaceService = AppFlags.marketplace
+          ? MarketplaceService(prefs)
+          : null;
+      final downloadManager = DownloadManager(
+        marketplaceService: marketplaceService ?? const NoopDownloadRecorder(),
+        library: modelLibrary,
+      );
 
-    runApp(
-      MultiProvider(
-        providers: <SingleChildWidget>[
-          ChangeNotifierProvider<SettingsController>(
-            create: (_) => settingsController,
-          ),
-          ChangeNotifierProvider<ModelLibraryService>(
-            create: (_) => modelLibrary,
-          ),
-          ChangeNotifierProvider<DetectionService>(
-            create: (_) => detectionService,
-          ),
-          ChangeNotifierProvider<DownloadManager>(
-            create: (_) => downloadManager,
-          ),
-          ChangeNotifierProvider<DetectionHistoryService>(
-            create: (_) => historyService,
-          ),
-          if (authService != null)
-            ChangeNotifierProvider<AuthService>(create: (_) => authService),
-          if (marketplaceService != null)
-            ChangeNotifierProvider<MarketplaceService>(
-              create: (_) => marketplaceService,
+      final historyService = DetectionHistoryService(prefs);
+
+      runApp(
+        MultiProvider(
+          providers: <SingleChildWidget>[
+            ChangeNotifierProvider<SettingsController>(
+              create: (_) => settingsController,
             ),
-        ],
-        child: const YoloApp(),
-      ),
-    );
-  }, (error, stack) {
-    debugPrint('runZonedGuarded caught an error: $error\n$stack');
-  });
+            ChangeNotifierProvider<ModelLibraryService>(
+              create: (_) => modelLibrary,
+            ),
+            ChangeNotifierProvider<DetectionService>(
+              create: (_) => detectionService,
+            ),
+            ChangeNotifierProvider<DownloadManager>(
+              create: (_) => downloadManager,
+            ),
+            ChangeNotifierProvider<DetectionHistoryService>(
+              create: (_) => historyService,
+            ),
+            if (authService != null)
+              ChangeNotifierProvider<AuthService>(create: (_) => authService),
+            if (marketplaceService != null)
+              ChangeNotifierProvider<MarketplaceService>(
+                create: (_) => marketplaceService,
+              ),
+          ],
+          child: const YoloApp(),
+        ),
+      );
+    },
+    (error, stack) {
+      debugPrint('runZonedGuarded caught an error: $error\n$stack');
+    },
+  );
 }

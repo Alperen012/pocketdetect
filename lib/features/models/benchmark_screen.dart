@@ -13,11 +13,12 @@ import '../../core/theme/app_colors.dart';
 import '../../l10n/generated/app_localizations.dart';
 
 /// Runs a benchmark; injectable so the screen can be tested without TFLite.
-typedef BenchmarkRunner = Future<BenchmarkReport> Function(
-  InstalledModel model, {
-  BenchmarkProgress? onProgress,
-  bool Function()? isCancelled,
-});
+typedef BenchmarkRunner =
+    Future<BenchmarkReport> Function(
+      InstalledModel model, {
+      BenchmarkProgress? onProgress,
+      bool Function()? isCancelled,
+    });
 
 Future<BenchmarkReport> _defaultRunner(
   InstalledModel model, {
@@ -124,7 +125,10 @@ class _BenchmarkScreenState extends State<BenchmarkScreen> {
             const SizedBox(height: 12),
             Text(
               l10n.benchmarkIntro,
-              style: const TextStyle(color: AppColors.textSecondary, height: 1.4),
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                height: 1.4,
+              ),
             ),
             const SizedBox(height: 16),
             if (_running) ...<Widget>[
@@ -251,16 +255,31 @@ class _ResultCard extends StatelessWidget {
                 style: const TextStyle(color: Colors.redAccent),
               )
             else ...<Widget>[
-              _StatRow(l10n.benchmarkMedian, '${wall.medianMs.toStringAsFixed(1)} ms'),
-              _StatRow(l10n.benchmarkMean, '${wall.meanMs.toStringAsFixed(1)} ms'),
-              _StatRow(l10n.benchmarkP90, '${wall.p90Ms.toStringAsFixed(1)} ms'),
-              _StatRow(l10n.benchmarkMin, '${wall.minMs.toStringAsFixed(1)} ms'),
+              _StatRow(
+                l10n.benchmarkMedian,
+                '${wall.medianMs.toStringAsFixed(1)} ms',
+              ),
+              _StatRow(
+                l10n.benchmarkMean,
+                '${wall.meanMs.toStringAsFixed(1)} ms',
+              ),
+              _StatRow(
+                l10n.benchmarkP90,
+                '${wall.p90Ms.toStringAsFixed(1)} ms',
+              ),
+              _StatRow(
+                l10n.benchmarkMin,
+                '${wall.minMs.toStringAsFixed(1)} ms',
+              ),
               if (result.native != null)
                 _StatRow(
                   l10n.benchmarkNative,
                   '${result.native!.medianMs.toStringAsFixed(1)} ms',
                 ),
-              _StatRow(l10n.benchmarkLoad, '${result.loadMs.toStringAsFixed(0)} ms'),
+              _StatRow(
+                l10n.benchmarkLoad,
+                '${result.loadMs.toStringAsFixed(0)} ms',
+              ),
             ],
           ],
         ),

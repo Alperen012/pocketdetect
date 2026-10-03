@@ -13,12 +13,13 @@ import 'model_library_service.dart';
 import 'model_validator.dart';
 
 /// Fetches [url] into [savePath], reporting progress as `received, total`.
-typedef FileDownloader = Future<void> Function(
-  String url,
-  String savePath, {
-  CancelToken? cancelToken,
-  void Function(int received, int total)? onProgress,
-});
+typedef FileDownloader =
+    Future<void> Function(
+      String url,
+      String savePath, {
+      CancelToken? cancelToken,
+      void Function(int received, int total)? onProgress,
+    });
 
 /// What [DownloadManager] needs from the marketplace backend once a download
 /// has succeeded. Implemented by `MarketplaceService`.
@@ -48,15 +49,17 @@ class DownloadManager extends ChangeNotifier {
     FileDownloader? downloader,
     Future<ModelValidationResult> Function(String path)? validator,
     Future<Directory> Function()? tempDir,
-  })  : _validate = validator ?? ModelValidator.validate,
-        _tempDir = tempDir ?? getTemporaryDirectory {
+  }) : _validate = validator ?? ModelValidator.validate,
+       _tempDir = tempDir ?? getTemporaryDirectory {
     if (downloader != null) {
       _download = downloader;
     } else {
-      final dio = Dio(BaseOptions(
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(minutes: 10),
-      ));
+      final dio = Dio(
+        BaseOptions(
+          connectTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(minutes: 10),
+        ),
+      );
       _dio = dio;
       _download = (url, savePath, {cancelToken, onProgress}) async {
         await dio.download(
@@ -169,10 +172,12 @@ class DownloadManager extends ChangeNotifier {
     try {
       final dir = await _tempDir();
       await dir.create(recursive: true);
-      temp = File(p.join(
-        dir.path,
-        'download_${DateTime.now().microsecondsSinceEpoch}.tflite',
-      ));
+      temp = File(
+        p.join(
+          dir.path,
+          'download_${DateTime.now().microsecondsSinceEpoch}.tflite',
+        ),
+      );
 
       await _download(
         url,
@@ -228,19 +233,21 @@ class DownloadManager extends ChangeNotifier {
       if (e.type == DioExceptionType.cancel) {
         _downloads.remove(key);
       } else {
-        _downloads[key] = (_downloads[key] ??
-                DownloadState(modelId: key, status: DownloadStatus.failed))
-            .copyWith(
-          status: DownloadStatus.failed,
-          error: e.message ?? 'Download failed',
-        );
+        _downloads[key] =
+            (_downloads[key] ??
+                    DownloadState(modelId: key, status: DownloadStatus.failed))
+                .copyWith(
+                  status: DownloadStatus.failed,
+                  error: e.message ?? 'Download failed',
+                );
       }
       notifyListeners();
       return null;
     } catch (e) {
-      _downloads[key] = (_downloads[key] ??
-              DownloadState(modelId: key, status: DownloadStatus.failed))
-          .copyWith(status: DownloadStatus.failed, error: e.toString());
+      _downloads[key] =
+          (_downloads[key] ??
+                  DownloadState(modelId: key, status: DownloadStatus.failed))
+              .copyWith(status: DownloadStatus.failed, error: e.toString());
       notifyListeners();
       return null;
     } finally {

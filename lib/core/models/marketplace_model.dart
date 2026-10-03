@@ -90,9 +90,13 @@ class MarketplaceModel {
       reviewCount: json['review_count'] as int? ?? 0,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      tags: tags
-              ?.map((dynamic e) =>
-                  (e is Map<String, dynamic>) ? e['tag'] as String : e as String)
+      tags:
+          tags
+              ?.map(
+                (dynamic e) => (e is Map<String, dynamic>)
+                    ? e['tag'] as String
+                    : e as String,
+              )
               .toList() ??
           const <String>[],
       publisherName: profile?['username'] as String?,

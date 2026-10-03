@@ -26,7 +26,9 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
     final filteredGroups = normalizedQuery.isEmpty
         ? cocoGroups
         : cocoGroups.where((group) {
-            final labelMatch = group.label.toLowerCase().contains(normalizedQuery);
+            final labelMatch = group.label.toLowerCase().contains(
+              normalizedQuery,
+            );
             final itemMatch = group.items.any(
               (item) => item.toLowerCase().contains(normalizedQuery),
             );
@@ -51,8 +53,13 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text(l10n.whatToDetect,
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  Text(
+                    l10n.whatToDetect,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     l10n.selectCategoriesDesc,
@@ -87,11 +94,16 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                       ),
                     )
                   : ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       itemBuilder: (context, index) {
                         final group = filteredGroups[index];
                         final isSelected = settings.isGroupSelected(group);
-                        final isPartial = settings.isGroupPartiallySelected(group);
+                        final isPartial = settings.isGroupPartiallySelected(
+                          group,
+                        );
                         return Card(
                           child: ExpansionTile(
                             title: Text(group.localizedLabel(l10n)),
@@ -106,8 +118,11 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                             children: group.items
                                 .map(
                                   (item) => SwitchListTile(
-                                    value: settings.selectedLabels.contains(item),
-                                    onChanged: (_) => settings.toggleLabel(item),
+                                    value: settings.selectedLabels.contains(
+                                      item,
+                                    ),
+                                    onChanged: (_) =>
+                                        settings.toggleLabel(item),
                                     title: Text(item),
                                   ),
                                 )

@@ -6,11 +6,7 @@ import '../../../core/theme/app_colors.dart';
 
 /// A card widget displaying a marketplace model summary.
 class ModelCard extends StatelessWidget {
-  const ModelCard({
-    super.key,
-    required this.model,
-    required this.onTap,
-  });
+  const ModelCard({super.key, required this.model, required this.onTap});
 
   final MarketplaceModel model;
   final VoidCallback onTap;
@@ -111,13 +107,12 @@ class ModelCard extends StatelessWidget {
                         iconColor: AppColors.warning,
                       ),
                       const SizedBox(width: 12),
-                      _statChip(
-                        Icons.storage_rounded,
-                        model.fileSizeFormatted,
-                      ),
+                      _statChip(Icons.storage_rounded, model.fileSizeFormatted),
                       const Spacer(),
                       // Tags (first 2)
-                      ...model.tags.take(2).map(
+                      ...model.tags
+                          .take(2)
+                          .map(
                             (tag) => Padding(
                               padding: const EdgeInsets.only(left: 4),
                               child: Container(
@@ -126,7 +121,9 @@ class ModelCard extends StatelessWidget {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withValues(alpha: 0.15),
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.15,
+                                  ),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
@@ -172,10 +169,7 @@ class ModelCard extends StatelessWidget {
         const SizedBox(width: 3),
         Text(
           value,
-          style: const TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 12,
-          ),
+          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
         ),
       ],
     );

@@ -35,7 +35,10 @@ class HomeDashboardScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               l10n.dashboardSubtitle,
-              style: const TextStyle(color: AppColors.textSecondary, height: 1.35),
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                height: 1.35,
+              ),
             ),
             const SizedBox(height: 20),
             Container(
@@ -105,7 +108,10 @@ class HomeDashboardScreen extends StatelessWidget {
                 children: <Widget>[
                   Text(
                     l10n.areYouReady,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -149,8 +155,11 @@ class HomeDashboardScreen extends StatelessWidget {
                           color: AppColors.primary.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(Icons.history,
-                            color: AppColors.accent, size: 24),
+                        child: const Icon(
+                          Icons.history,
+                          color: AppColors.accent,
+                          size: 24,
+                        ),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -168,8 +177,7 @@ class HomeDashboardScreen extends StatelessWidget {
                             Text(
                               history.isEmpty
                                   ? l10n.historyEmpty
-                                  : l10n.historyObjectCount(
-                                      history.count),
+                                  : l10n.historyObjectCount(history.count),
                               style: const TextStyle(
                                 color: AppColors.textSecondary,
                                 fontSize: 13,
@@ -186,8 +194,10 @@ class HomeDashboardScreen extends StatelessWidget {
                             ),
                           );
                         },
-                        icon: const Icon(Icons.chevron_right,
-                            color: AppColors.textSecondary),
+                        icon: const Icon(
+                          Icons.chevron_right,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -213,8 +223,11 @@ class HomeDashboardScreen extends StatelessWidget {
                       color: AppColors.accent.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.collections_outlined,
-                        color: AppColors.accent, size: 24),
+                    child: const Icon(
+                      Icons.collections_outlined,
+                      color: AppColors.accent,
+                      size: 24,
+                    ),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -249,8 +262,10 @@ class HomeDashboardScreen extends StatelessWidget {
                         ),
                       );
                     },
-                    icon: const Icon(Icons.chevron_right,
-                        color: AppColors.textSecondary),
+                    icon: const Icon(
+                      Icons.chevron_right,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ],
               ),

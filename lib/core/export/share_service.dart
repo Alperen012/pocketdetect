@@ -24,10 +24,9 @@ class ShareService {
     final dir = await getTemporaryDirectory();
     final file = File(p.join(dir.path, _safeName(fileName)));
     await file.writeAsBytes(bytes, flush: true);
-    await Share.shareXFiles(
-      <XFile>[XFile(file.path, mimeType: mimeType)],
-      subject: subject,
-    );
+    await Share.shareXFiles(<XFile>[
+      XFile(file.path, mimeType: mimeType),
+    ], subject: subject);
   }
 
   /// Keeps only characters that are safe in a file name on every platform.

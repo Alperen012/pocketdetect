@@ -97,8 +97,11 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.add_rounded,
-                                    size: 18, color: Colors.white),
+                                Icon(
+                                  Icons.add_rounded,
+                                  size: 18,
+                                  color: Colors.white,
+                                ),
                                 SizedBox(width: 4),
                                 Text(
                                   'Publish',
@@ -133,8 +136,11 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.login_rounded,
-                                  size: 18, color: AppColors.accent),
+                              Icon(
+                                Icons.login_rounded,
+                                size: 18,
+                                color: AppColors.accent,
+                              ),
                               SizedBox(width: 4),
                               Text(
                                 'Sign In',
@@ -207,8 +213,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                       controller: _scrollController,
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       physics: const AlwaysScrollableScrollPhysics(),
-                      itemCount:
-                          svc.models.length + (svc.hasMore ? 1 : 0),
+                      itemCount: svc.models.length + (svc.hasMore ? 1 : 0),
                       itemBuilder: (context, index) {
                         if (index >= svc.models.length) {
                           return const Padding(
@@ -264,8 +269,11 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.search_off_rounded,
-              size: 56, color: AppColors.textSecondary.withValues(alpha: 0.5)),
+          Icon(
+            Icons.search_off_rounded,
+            size: 56,
+            color: AppColors.textSecondary.withValues(alpha: 0.5),
+          ),
           const SizedBox(height: 12),
           const Text(
             'No models found',
@@ -278,10 +286,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
           const SizedBox(height: 6),
           const Text(
             'Try adjusting your search or filters',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 13,
-            ),
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
           ),
         ],
       ),
@@ -295,8 +300,11 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.cloud_off_rounded,
-                size: 56, color: AppColors.textSecondary),
+            const Icon(
+              Icons.cloud_off_rounded,
+              size: 56,
+              color: AppColors.textSecondary,
+            ),
             const SizedBox(height: 12),
             Text(
               svc.error ?? 'Something went wrong',

@@ -17,21 +17,30 @@ void main() {
 
     test('disjoint boxes have IoU 0', () {
       expect(
-        iou(const Rect.fromLTWH(0, 0, 10, 10), const Rect.fromLTWH(20, 20, 5, 5)),
+        iou(
+          const Rect.fromLTWH(0, 0, 10, 10),
+          const Rect.fromLTWH(20, 20, 5, 5),
+        ),
         0.0,
       );
     });
 
     test('touching edges have IoU 0', () {
       expect(
-        iou(const Rect.fromLTWH(0, 0, 10, 10), const Rect.fromLTWH(10, 0, 10, 10)),
+        iou(
+          const Rect.fromLTWH(0, 0, 10, 10),
+          const Rect.fromLTWH(10, 0, 10, 10),
+        ),
         0.0,
       );
     });
 
     test('half-overlapping boxes have IoU 1/3', () {
       expect(
-        iou(const Rect.fromLTWH(0, 0, 10, 10), const Rect.fromLTWH(5, 0, 10, 10)),
+        iou(
+          const Rect.fromLTWH(0, 0, 10, 10),
+          const Rect.fromLTWH(5, 0, 10, 10),
+        ),
         closeTo(50 / 150, 1e-9),
       );
     });

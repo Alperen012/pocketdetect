@@ -84,8 +84,9 @@ List<List<double>> parseOutputBytes(
 
   // float32: a fresh copy starts at offset 0 of its own buffer, so a Float32
   // view over it is always correctly aligned.
-  final values =
-      Uint8List.fromList(bytes).buffer.asFloat32List(0, channels * count);
+  final values = Uint8List.fromList(
+    bytes,
+  ).buffer.asFloat32List(0, channels * count);
   for (var c = 0; c < channels; c++) {
     result.add(Float32List.sublistView(values, c * count, (c + 1) * count));
   }

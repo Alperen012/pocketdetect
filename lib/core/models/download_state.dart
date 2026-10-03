@@ -43,10 +43,4 @@ class DownloadState {
   }
 }
 
-enum DownloadStatus {
-  idle,
-  downloading,
-  validating,
-  completed,
-  failed,
-}
+enum DownloadStatus { idle, downloading, validating, completed, failed }

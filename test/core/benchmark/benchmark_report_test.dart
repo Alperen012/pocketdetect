@@ -8,9 +8,18 @@ import 'package:mobile_yolo/core/detection/interpreter_factory.dart';
 void main() {
   group('TimingStats.fromSamples', () {
     test('computes mean, median, p90, min and max', () {
-      final s = TimingStats.fromSamples(
-        <double>[10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
-      );
+      final s = TimingStats.fromSamples(<double>[
+        10,
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90,
+        100,
+      ]);
 
       expect(s.count, 10);
       expect(s.meanMs, 55);
@@ -39,10 +48,13 @@ void main() {
     test('a single sample fills every field', () {
       final s = TimingStats.fromSamples(<double>[42]);
 
-      expect(
-        <double>[s.meanMs, s.medianMs, s.p90Ms, s.minMs, s.maxMs],
-        everyElement(42),
-      );
+      expect(<double>[
+        s.meanMs,
+        s.medianMs,
+        s.p90Ms,
+        s.minMs,
+        s.maxMs,
+      ], everyElement(42));
     });
 
     test('rejects an empty list', () {
@@ -87,38 +99,38 @@ void main() {
 
   group('BenchmarkReport', () {
     BenchmarkReport report() => BenchmarkReport(
-          modelName: 'YOLO26 Nano (INT8)',
-          inputWidth: 832,
-          inputHeight: 832,
-          quantType: 'INT8',
-          warmupRuns: 3,
-          measuredRuns: 10,
-          createdAt: DateTime.utc(2026, 5, 1),
-          device: const <String, String>{'model': 'Pixel 8', 'android': '15'},
-          results: <DelegateBenchmark>[
-            DelegateBenchmark(
-              requested: AcceleratorPreference.cpu,
-              actual: DelegateKind.cpu,
-              loadMs: 120,
-              wall: TimingStats.fromSamples(<double>[40, 42, 44]),
-              native: TimingStats.fromSamples(<double>[38, 40, 42]),
-            ),
-            DelegateBenchmark(
-              requested: AcceleratorPreference.gpu,
-              actual: DelegateKind.cpu,
-              loadMs: 300,
-              wall: TimingStats.fromSamples(<double>[41, 43, 45]),
-              fallbackReasons: const <DelegateKind, String>{
-                DelegateKind.gpu: 'unsupported op',
-              },
-            ),
-            const DelegateBenchmark(
-              requested: AcceleratorPreference.nnapi,
-              loadMs: 5,
-              error: 'boom',
-            ),
-          ],
-        );
+      modelName: 'YOLO26 Nano (INT8)',
+      inputWidth: 832,
+      inputHeight: 832,
+      quantType: 'INT8',
+      warmupRuns: 3,
+      measuredRuns: 10,
+      createdAt: DateTime.utc(2026, 5, 1),
+      device: const <String, String>{'model': 'Pixel 8', 'android': '15'},
+      results: <DelegateBenchmark>[
+        DelegateBenchmark(
+          requested: AcceleratorPreference.cpu,
+          actual: DelegateKind.cpu,
+          loadMs: 120,
+          wall: TimingStats.fromSamples(<double>[40, 42, 44]),
+          native: TimingStats.fromSamples(<double>[38, 40, 42]),
+        ),
+        DelegateBenchmark(
+          requested: AcceleratorPreference.gpu,
+          actual: DelegateKind.cpu,
+          loadMs: 300,
+          wall: TimingStats.fromSamples(<double>[41, 43, 45]),
+          fallbackReasons: const <DelegateKind, String>{
+            DelegateKind.gpu: 'unsupported op',
+          },
+        ),
+        const DelegateBenchmark(
+          requested: AcceleratorPreference.nnapi,
+          loadMs: 5,
+          error: 'boom',
+        ),
+      ],
+    );
 
     test('JSON round-trips the key fields', () {
       final json = jsonDecode(report().toJsonString()) as Map<String, dynamic>;
