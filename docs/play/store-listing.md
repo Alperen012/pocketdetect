@@ -13,7 +13,7 @@ Check that the name does not misuse the "YOLO" trademark before publishing.
 
 ## English
 
-**Title (30):** YOLO Mobile: Object Detection
+**Title (30):** PocketDetect: Object Detection
 **Short description (80):** Offline AI object detection with your own YOLO models. No account needed.
 
 **Full description:**
@@ -30,11 +30,11 @@ For tinkerers
 • Compare two models side by side on the same image
 • Export results as JSON, CSV or an annotated image
 
-Free and open source (AGPL-3.0): <SOURCE_URL>
+Free and open source (AGPL-3.0): https://github.com/Alperen012/pocketdetect
 
 ## Türkçe
 
-**Başlık (30):** YOLO Mobile: Nesne Tespiti
+**Başlık (30):** PocketDetect: Nesne Tespiti
 **Kısa açıklama (80):** Kendi YOLO modellerinle çevrimdışı yapay zekâ nesne tespiti. Hesap gerekmez.
 
 **Tam açıklama:**
@@ -51,7 +51,7 @@ Meraklılar için
 • İki modeli aynı görselde yan yana karşılaştır
 • Sonuçları JSON, CSV veya kutulu görsel olarak dışa aktar
 
-Ücretsiz ve açık kaynak (AGPL-3.0): <SOURCE_URL>
+Ücretsiz ve açık kaynak (AGPL-3.0): https://github.com/Alperen012/pocketdetect
 
 ## Release checklist
 

@@ -13,7 +13,7 @@ class YoloApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'YOLO Mobile',
+      title: 'PocketDetect',
       theme: AppTheme.dark(),
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,

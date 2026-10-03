@@ -12,7 +12,7 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" tools:node="remove" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <application
-        android:label="YOLO Mobile"
+        android:label="PocketDetect"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

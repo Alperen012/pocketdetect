@@ -9,7 +9,7 @@ class AppLocalizationsTr extends AppLocalizations {
   AppLocalizationsTr([String locale = 'tr']) : super(locale);
 
   @override
-  String get appTitle => 'YOLO Mobile';
+  String get appTitle => 'PocketDetect';
 
   @override
   String get navHome => 'Ana Sayfa';
@@ -154,7 +154,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get reportSaveFailed => 'Rapor kaydedilemedi.';
 
   @override
-  String get shareSubject => 'YOLO Mobile Tespit Sonucu';
+  String get shareSubject => 'PocketDetect Tespit Sonucu';
 
   @override
   String get shareFailedCopied => 'Paylaşım açılamadı. Özet panoya kopyalandı.';
@@ -173,7 +173,7 @@ class AppLocalizationsTr extends AppLocalizations {
       '• Nesne bölgeleri hesaplanıyor\n• Güven skorları değerlendiriliyor\n• Sonuçlar hazırlanıyor';
 
   @override
-  String get reportTitle => 'YOLO Mobile Tespit Raporu';
+  String get reportTitle => 'PocketDetect Tespit Raporu';
 
   @override
   String reportGenerated(String timestamp) {
@@ -353,7 +353,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profile => 'Profil';
 
   @override
-  String get defaultUserName => 'YOLO Mobile Kullanıcı';
+  String get defaultUserName => 'PocketDetect Kullanıcı';
 
   @override
   String get localProfileOnDevice => 'Yerel profil • Cihaz üstü tespit';

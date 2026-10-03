@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "appTitle": "YOLO Mobile",
+  "appTitle": "PocketDetect",
   "@appTitle": {
     "description": "Application title shown in task switcher"
   },
@@ -110,13 +110,13 @@
   "analysisInProgressWait": "Analysis in progress. Please wait a few seconds.",
   "reportSaved": "Report saved successfully.",
   "reportSaveFailed": "Failed to save report.",
-  "shareSubject": "YOLO Mobile Detection Result",
+  "shareSubject": "PocketDetect Detection Result",
   "shareFailedCopied": "Share could not be opened. Summary copied to clipboard.",
   "analyzingImage": "Analyzing image...",
   "modelRunningOnDevice": "Model is running on-device",
   "analysisInProgress": "Analysis in progress",
   "analysisSteps": "• Computing object regions\n• Evaluating confidence scores\n• Preparing results",
-  "reportTitle": "YOLO Mobile Detection Report",
+  "reportTitle": "PocketDetect Detection Report",
   "reportGenerated": "Generated: {timestamp}",
   "@reportGenerated": {
     "placeholders": {
@@ -221,7 +221,7 @@
     }
   },
   "profile": "Profile",
-  "defaultUserName": "YOLO Mobile User",
+  "defaultUserName": "PocketDetect User",
   "localProfileOnDevice": "Local profile • On-device detection",
   "selectedClasses": "Selected Classes",
   "category": "Category",

@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'YOLO Mobile';
+  String get appTitle => 'PocketDetect';
 
   @override
   String get navHome => 'Home';
@@ -154,7 +154,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportSaveFailed => 'Failed to save report.';
 
   @override
-  String get shareSubject => 'YOLO Mobile Detection Result';
+  String get shareSubject => 'PocketDetect Detection Result';
 
   @override
   String get shareFailedCopied =>
@@ -174,7 +174,7 @@ class AppLocalizationsEn extends AppLocalizations {
       '• Computing object regions\n• Evaluating confidence scores\n• Preparing results';
 
   @override
-  String get reportTitle => 'YOLO Mobile Detection Report';
+  String get reportTitle => 'PocketDetect Detection Report';
 
   @override
   String reportGenerated(String timestamp) {
@@ -354,7 +354,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profile => 'Profile';
 
   @override
-  String get defaultUserName => 'YOLO Mobile User';
+  String get defaultUserName => 'PocketDetect User';
 
   @override
   String get localProfileOnDevice => 'Local profile • On-device detection';

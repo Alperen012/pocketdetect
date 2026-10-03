@@ -58,7 +58,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // The app title should be rendered
-      expect(find.text('YOLO Mobile'), findsOneWidget);
+      expect(find.text('PocketDetect'), findsOneWidget);
 
       // Should show the start camera button
       expect(find.byIcon(Icons.photo_camera_outlined), findsOneWidget);

@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// Application title shown in task switcher
   ///
   /// In en, this message translates to:
-  /// **'YOLO Mobile'**
+  /// **'PocketDetect'**
   String get appTitle;
 
   /// No description provided for @navHome.
@@ -347,7 +347,7 @@ abstract class AppLocalizations {
   /// No description provided for @shareSubject.
   ///
   /// In en, this message translates to:
-  /// **'YOLO Mobile Detection Result'**
+  /// **'PocketDetect Detection Result'**
   String get shareSubject;
 
   /// No description provided for @shareFailedCopied.
@@ -383,7 +383,7 @@ abstract class AppLocalizations {
   /// No description provided for @reportTitle.
   ///
   /// In en, this message translates to:
-  /// **'YOLO Mobile Detection Report'**
+  /// **'PocketDetect Detection Report'**
   String get reportTitle;
 
   /// No description provided for @reportGenerated.
@@ -707,7 +707,7 @@ abstract class AppLocalizations {
   /// No description provided for @defaultUserName.
   ///
   /// In en, this message translates to:
-  /// **'YOLO Mobile User'**
+  /// **'PocketDetect User'**
   String get defaultUserName;
 
   /// No description provided for @localProfileOnDevice.

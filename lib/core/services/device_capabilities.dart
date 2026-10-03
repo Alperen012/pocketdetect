@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 class DeviceCapabilities {
   const DeviceCapabilities();
 
-  static const MethodChannel _channel = MethodChannel('mobile_yolo/device');
+  static const MethodChannel _channel = MethodChannel('pocketdetect/device');
 
   Future<bool> isLowRamDevice() async {
     if (!Platform.isAndroid) {

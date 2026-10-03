@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-YOLO Mobile: a Flutter app that runs on-device object detection with a TFLite YOLO model (photo, gallery, batch and live camera), with a model library for importing, benchmarking and comparing custom `.tflite` models. A Supabase-backed marketplace and accounts exist but are switched off by default (see Feature flags). UI strings are localized in English and Turkish; the README is in Turkish.
+PocketDetect: a Flutter app that runs on-device object detection with a TFLite YOLO model (photo, gallery, batch and live camera), with a model library for importing, benchmarking and comparing custom `.tflite` models. A Supabase-backed marketplace and accounts exist but are switched off by default (see Feature flags). UI strings are localized in English and Turkish; the README is in Turkish.
 
 ## Commands
 
@@ -107,7 +107,7 @@ No schema or migrations live in this repo. The client code expects:
 
 ### Platform channel
 
-`DeviceCapabilities` calls `isLowRamDevice` on the `mobile_yolo/device` method channel, implemented only in `android/app/src/main/kotlin/com/example/mobile_yolo/MainActivity.kt`. On other platforms it returns false.
+`DeviceCapabilities` calls `isLowRamDevice` on the `pocketdetect/device` method channel, implemented only in `android/app/src/main/kotlin/io/github/alperen012/pocketdetect/MainActivity.kt`. On other platforms it returns false.
 
 ## Localization
 

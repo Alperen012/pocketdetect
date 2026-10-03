@@ -1,4 +1,4 @@
-# YOLO Mobile
+# PocketDetect
 
 Flutter tabanlı, cihaz üstünde çalışan nesne tespiti uygulaması. TFLite
 formatındaki YOLO modelleriyle fotoğraftan, galeriden, toplu görsellerden ve
