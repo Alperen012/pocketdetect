@@ -627,14 +627,17 @@ class _CaptureScreenState extends State<CaptureScreen> {
 
           // Detection frame guide (only in capture mode)
           if (!_isLiveMode)
+            // Purely visual: it must not swallow the pinch-zoom gestures.
             Positioned.fill(
-              child: FractionallySizedBox(
-                widthFactor: 0.8,
-                heightFactor: 0.55,
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.primary, width: 2),
-                    borderRadius: BorderRadius.circular(16),
+              child: IgnorePointer(
+                child: FractionallySizedBox(
+                  widthFactor: 0.8,
+                  heightFactor: 0.55,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.primary, width: 2),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
                 ),
               ),
