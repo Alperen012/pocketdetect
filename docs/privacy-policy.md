@@ -1,3 +1,8 @@
+---
+title: PocketDetect Privacy Policy
+permalink: /privacy/
+---
+
 # Privacy Policy / Gizlilik Politikası
 
 _Last updated / Son güncelleme: 2026-10-02_
