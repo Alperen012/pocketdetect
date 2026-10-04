@@ -9,7 +9,7 @@ Check that the name does not misuse the "YOLO" trademark before publishing.
 - Data encrypted in transit: not applicable (no data is sent). URL model import is a plain download initiated by the user.
 - Account creation: none. Data deletion: not applicable.
 - Permissions: `CAMERA` (live detection), `INTERNET` (URL model import only).
-- Privacy policy URL: host `docs/privacy-policy.md` (for example GitHub Pages) and enter the link.
+- Privacy policy URL: https://alperen012.github.io/pocketdetect/privacy/ (served from `docs/privacy-policy.md` by GitHub Pages).
 
 ## English
 

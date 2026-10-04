@@ -109,6 +109,12 @@ No schema or migrations live in this repo. The client code expects:
 
 `DeviceCapabilities` calls `isLowRamDevice` on the `pocketdetect/device` method channel, implemented only in `android/app/src/main/kotlin/io/github/alperen012/pocketdetect/MainActivity.kt`. On other platforms it returns false.
 
+### Layout, zoom and release assets
+
+- `CaptureScreen`, `ResultsScreen` and `HomeShell` switch layout on `Orientation`: in landscape the capture screen shows the preview beside a control strip, results show photo and summary side by side, and the bottom bar becomes a `NavigationRail`. Widget tests default to an 800x600 (landscape) surface, so use `usePortraitSurface` / `useLandscapeSurface` from `test/test_helpers/surface.dart`.
+- Zoom: the camera preview pinches via `CameraController.setZoomLevel` (hardware zoom, so live detections stay aligned); result and compare images use `InteractiveViewer`. Overlays above the preview must be wrapped in `IgnorePointer` or they swallow the pinch.
+- `tools/` holds Dart generators for the launcher icon (`generate_icon.dart`, then `dart run flutter_launcher_icons`), the Play feature graphic and screenshot padding. Store texts, the privacy policy (published at https://alperen012.github.io/pocketdetect/privacy/) and screenshots live in `docs/`. Release signing reads the untracked `android/key.properties`.
+
 ## Localization
 
 - Edit `lib/l10n/app_en.arb` (the template) and `lib/l10n/app_tr.arb` together. Never hand-edit `lib/l10n/generated/`.
